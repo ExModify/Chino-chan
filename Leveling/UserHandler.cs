@@ -13,7 +13,7 @@ namespace Chino_chan.Leveling
     {
         string Filename { get; set; }
 
-        public UserHandler(LevelSystem Level, string Filename = "Data\\Users.json")
+        public UserHandler(LevelSystem Level, string Filename = "Data/Users.json")
         {
             this.Filename = Filename;
 

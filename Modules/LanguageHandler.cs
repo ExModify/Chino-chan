@@ -88,7 +88,7 @@ namespace Chino_chan.Modules
 
                     Logger.Log(LogType.Language, ConsoleColor.Cyan, null, "Saving...");
                     
-                    File.WriteAllText($"lang\\{ le.Id }.json", Content);
+                    File.WriteAllText($"lang/{ le.Id }.json", Content);
                     if (Languages.ContainsKey(le.Id))
                          Languages[le.Id] = le;
                     else Languages.Add(le.Id, le);

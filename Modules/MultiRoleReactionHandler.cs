@@ -82,7 +82,7 @@ namespace Chino_chan.Modules
     }
     public class MultiRoleReactionHandler
     {
-        private readonly string Filename = "Data\\MultiRoleDatabase.json";
+        private readonly string Filename = "Data/MultiRoleDatabase.json";
         private readonly Regex RoleRegex;
 
         public List<MultiRoleEntry> Entries { get; private set; }

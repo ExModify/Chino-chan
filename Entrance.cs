@@ -58,7 +58,7 @@ namespace Chino_chan
 
             if (FirstRun)
             {
-                SetErrorMode(ErrorModes.SEM_NOGPFAULTERRORBOX);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) SetErrorMode(ErrorModes.SEM_NOGPFAULTERRORBOX);
                 Args = args;
                 
                 if (Args.Length > 1)

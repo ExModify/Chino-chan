@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -20,11 +21,14 @@ namespace Chino_chan.Modules
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                LinuxCpuInfo inf = new LinuxCpuInfo();
-                inf.GetValues();
-                Name = inf.ModelName;
-                Speed = (int)inf.MHz;
-                Threads = inf.Cores;
+                string data = File.ReadAllText("/proc/cpuinfo");
+                string model = @"model name\s+:\s+(.+)\n";
+                string speed = @"cpu MHz\s+:\s+(.+)\n";
+                string threads = @"cpu cores\s+:\s+(.+)\n";
+
+                Name = Regex.Match(data, model).Groups[1].Value;
+                Speed = (int)Convert.ToDouble(Regex.Match(data, speed).Groups[1].Value, CultureInfo.GetCultureInfo("en-US"));
+                Threads = Convert.ToInt32(Regex.Match(data, threads).Groups[1].Value);
             }
             else
             {
@@ -45,9 +49,30 @@ namespace Chino_chan.Modules
 
         public OsInfo()
         {
-            RegistryKey sk = Registry.LocalMachine.OpenSubKey("SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion");
-            Name = (string)sk.GetValue("ProductName", "");
-            Version = "10.0." + (string)sk.GetValue("CurrentBuild", "") + " " + (string)sk.GetValue("ReleaseId", "");
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                RegistryKey sk = Registry.LocalMachine.OpenSubKey("SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion");
+                Name = (string)sk.GetValue("ProductName", "");
+                Version = (string)sk.GetValue("CurrentVersion", "") + "." + (string)sk.GetValue("CurrentBuild", "") + " " + (string)sk.GetValue("ReleaseId", "");
+            }
+            else
+            {
+                string[] lines = File.ReadAllLines("/etc/os-release");
+                foreach (string line in lines)
+                {
+                    if (line.StartsWith("NAME"))
+                    {
+                        Name = line.Split('=')[1];
+                        Name = Name.Replace("\"", "");
+                    }
+                    else if (line.StartsWith("VERSION=")) 
+                    {
+                        Version = line.Split('=')[1];
+                        Version = Version.Replace("\"", "");
+                    }
+                }
+            }
+
             Architecture = Environment.Is64BitOperatingSystem == true ? "64-bit" : "32-bit";
         }
     }
@@ -80,13 +105,28 @@ namespace Chino_chan.Modules
         {
             get
             {
-                PerformanceInformation pi = new PerformanceInformation();
-                if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    return Convert.ToInt64((pi.PhysicalAvailable.ToInt64() * pi.PageSize.ToInt64() / 1024 / 1024));
+                    PerformanceInformation pi = new PerformanceInformation();
+                    if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
+                    {
+                        return Convert.ToInt64((pi.PhysicalAvailable.ToInt64() * pi.PageSize.ToInt64() / 1024 / 1024));
+                    }
+                    else
+                    {
+                        return -1;
+                    }
                 }
                 else
                 {
+                    string[] lines = File.ReadAllLines("/proc/meminfo");
+                    foreach (string line in lines)
+                    {
+                        if (line.StartsWith("MemFree"))
+                        {
+                            return Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim());
+                        }
+                    }
                     return -1;
                 }
             }
@@ -95,14 +135,30 @@ namespace Chino_chan.Modules
 
         public MemInfo()
         {
-            PerformanceInformation pi = new PerformanceInformation();
-            if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                TotalMemory = Convert.ToInt64((pi.PhysicalTotal.ToInt64() * pi.PageSize.ToInt64() / 1024 / 1024));
+                PerformanceInformation pi = new PerformanceInformation();
+                if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
+                {
+                    TotalMemory = Convert.ToInt64((pi.PhysicalTotal.ToInt64() * pi.PageSize.ToInt64() / 1024 / 1024));
+                }
+                else
+                {
+                    TotalMemory = - 1;
+                }
             }
             else
             {
-                TotalMemory = - 1;
+            
+                string[] lines = File.ReadAllLines("/proc/meminfo");
+                foreach (string line in lines)
+                {
+                    if (line.StartsWith("MemFree"))
+                    {
+                        TotalMemory = Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim());
+                    }
+                }
+                TotalMemory = -1;
             }
         }
     }
@@ -124,29 +180,50 @@ namespace Chino_chan.Modules
         
         public VideoCardInfo()
         {
-            RegistryKey mainkey32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\DirectX");
-            RegistryKey mainkey64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64).OpenSubKey("SOFTWARE\\Microsoft\\DirectX");
-
-            string[] names32 = mainkey32.GetSubKeyNames();
-            string[] names64 = mainkey64.GetSubKeyNames();
-
-            for (int i = 0; i < names32.Length; i++)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
             {
-                RegistryKey subkey = mainkey32.OpenSubKey(names32[i]);
-                ulong mem = Convert.ToUInt64(subkey.GetValue("DedicatedVideoMemory", "0x0"));
-                if (mem > 0)
+                RegistryKey mainkey32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).OpenSubKey("SOFTWARE\\Microsoft\\DirectX");
+                RegistryKey mainkey64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64).OpenSubKey("SOFTWARE\\Microsoft\\DirectX");
+
+                string[] names32 = mainkey32.GetSubKeyNames();
+                string[] names64 = mainkey64.GetSubKeyNames();
+
+                for (int i = 0; i < names32.Length; i++)
                 {
-                    VideoCards.Add(new CardInfo((string)subkey.GetValue("Description", "0x0"), mem));
+                    RegistryKey subkey = mainkey32.OpenSubKey(names32[i]);
+                    ulong mem = Convert.ToUInt64(subkey.GetValue("DedicatedVideoMemory", "0x0"));
+                    if (mem > 0)
+                    {
+                        VideoCards.Add(new CardInfo((string)subkey.GetValue("Description", "0x0"), mem));
+                    }
+                }
+                for (int i = 0; i < names64.Length; i++)
+                {
+                    RegistryKey subkey = mainkey64.OpenSubKey(names64[i]);
+                    ulong mem = Convert.ToUInt64(subkey.GetValue("DedicatedVideoMemory", "0x0"));
+                    if (mem > 0)
+                    {
+                        VideoCards.Add(new CardInfo((string)subkey.GetValue("Description", "0x0"), mem));
+                    }
                 }
             }
-            for (int i = 0; i < names64.Length; i++)
+            else
             {
-                RegistryKey subkey = mainkey64.OpenSubKey(names64[i]);
-                ulong mem = Convert.ToUInt64(subkey.GetValue("DedicatedVideoMemory", "0x0"));
-                if (mem > 0)
+                ProcessStartInfo info = new ProcessStartInfo() {
+                    FileName = "lspci",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false
+                };
+                Process p = Process.Start(info);
+                p.WaitForExit();
+                string[] gpus = p.StandardOutput.ReadToEnd().Split('\n').Where(t => t.Contains("VGA")).ToArray();
+                foreach (string gpu in gpus)
                 {
-                    VideoCards.Add(new CardInfo((string)subkey.GetValue("Description", "0x0"), mem));
+                    Logger.Log(LogType.SysInfo, ConsoleColor.Green, null, gpu);
+                    CardInfo ci = new CardInfo(gpu.Split(':')[2].Trim(), 0);
+                    VideoCards.Add(ci);
                 }
+                
             }
         }
     }
@@ -170,49 +247,6 @@ namespace Chino_chan.Modules
             VideoCardInfo = new VideoCardInfo(); // 1ms
 
             Logger.Log(LogType.SysInfo, ConsoleColor.Magenta, null, "System information loaded!");
-        }
-    }
-    public class LinuxCpuInfo
-    {
-        public string ModelName { get; private set; }
-        public int Cores { get; private set; }
-        public double MHz { get; private set; }
-
-        public void GetValues()
-        {
-            string[] cpuInfoLines = File.ReadAllLines(@"/proc/cpuinfo");
-
-            CpuInfoMatch[] cpuInfoMatches =
-            {
-                new CpuInfoMatch(@"^model name\s+:\s+(.+)", value => ModelName = value),
-                new CpuInfoMatch(@"^cpu MHz\s+:\s+(.+)", value => MHz = Convert.ToDouble(value)),
-                new CpuInfoMatch(@"^cpu cores\s+:\s+(.+)", value => Cores = Convert.ToInt32(value))
-            };
-
-            foreach (string cpuInfoLine in cpuInfoLines)
-            {
-                foreach (CpuInfoMatch cpuInfoMatch in cpuInfoMatches)
-                {
-                    Match match = cpuInfoMatch.regex.Match(cpuInfoLine);
-                    if (match.Groups[0].Success)
-                    {
-                        string value = match.Groups[1].Value;
-                        cpuInfoMatch.updateValue(value);
-                    }
-                }
-            }
-        }
-
-        public class CpuInfoMatch
-        {
-            public Regex regex;
-            public Action<string> updateValue;
-
-            public CpuInfoMatch(string pattern, Action<string> update)
-            {
-                this.regex = new Regex(pattern, RegexOptions.Compiled);
-                this.updateValue = update;
-            }
         }
     }
 }

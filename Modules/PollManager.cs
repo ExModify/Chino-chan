@@ -13,7 +13,7 @@ namespace Chino_chan.Modules
 {
     public class PollManager
     {
-        private string Filename { get; set; } = "Data\\Polls.json";
+        private string Filename { get; set; } = "Data/Polls.json";
 
         Dictionary<ulong, List<Poll>> Polls { get; set; }
         Dictionary<ulong, List<PollIdentifier>> PollMessageIds { get; set; }

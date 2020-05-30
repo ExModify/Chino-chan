@@ -30,8 +30,8 @@ namespace Chino_chan.Models.File
         {
             Files = new List<string>();
 
-            if (!Path.EndsWith("\\"))
-                Path += "\\";
+            if (!Path.EndsWith("/"))
+                Path += "/";
 
             this.Name = Name;
             this.Path = Path;

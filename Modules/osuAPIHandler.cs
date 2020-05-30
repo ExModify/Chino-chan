@@ -67,7 +67,7 @@ namespace Chino_chan.Modules
         #endregion
 
         #region CacheFiles
-        public const string Folder = "Data\\osu\\";
+        public const string Folder = "Data/osu/";
         public string RankedBeatmapCachePath = Folder + "RankedBeatmapCache.json";
         public string UserCachePath          = Folder + "UserCache.json";
         public string UserNameIdCachePath    = Folder + "UserNameIdCache.json";
@@ -442,12 +442,12 @@ namespace Chino_chan.Modules
 
         public void Save(object Object, string Path)
         {
-            if (!Directory.Exists("Data\\osu"))
+            if (!Directory.Exists("Data/osu"))
             {
                 if (!Directory.Exists("Data"))
                     Directory.CreateDirectory("Data");
 
-                Directory.CreateDirectory("Data\\osu");
+                Directory.CreateDirectory("Data/osu");
             }
             File.WriteAllText(Path, JsonConvert.SerializeObject(Object, Formatting.Indented));
         }

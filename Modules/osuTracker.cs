@@ -19,7 +19,7 @@ namespace Chino_chan.Modules
 
         readonly osuApi API;
         readonly List<osuTrackUser> Track;
-        readonly string Filename = "Data\\osuTrack.json";
+        readonly string Filename = "Data/osuTrack.json";
 
         public event Action<osuTrackUser, byte, byte, byte, RecentScore, User, float> OnNewScore;
 

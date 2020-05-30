@@ -16,7 +16,7 @@ namespace Chino_chan
         {
             get
             {
-                return "Data\\GuildSettings.json";
+                return "Data/GuildSettings.json";
             }
         }
         

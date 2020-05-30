@@ -99,7 +99,7 @@ namespace Chino_chan.Modules
 
                 for (int i = 0; i < int.MaxValue; i++)
                 {
-                    Filename = "log\\log." + i + ".log";
+                    Filename = "log/log." + i + ".log";
 
                     if (!Filenames.Contains(Filename))
                     {

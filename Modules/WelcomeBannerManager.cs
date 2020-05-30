@@ -29,11 +29,11 @@ namespace Chino_chan.Modules
             Banners = new Dictionary<ulong, WelcomeBanner>();
 
             Logger.Log(LogType.WelcomeBanner, ConsoleColor.Magenta, "Load", "Loading default resources...");
-            DefaultFrame = new Bitmap(System.Drawing.Image.FromFile("Data\\Resources\\ServerBanners\\default-frame.png"));
-            DefaultBackground = new Bitmap(System.Drawing.Image.FromFile("Data\\Resources\\ServerBanners\\default-background.png"));
+            DefaultFrame = new Bitmap(System.Drawing.Image.FromFile("Data/Resources/ServerBanners/default-frame.png"));
+            DefaultBackground = new Bitmap(System.Drawing.Image.FromFile("Data/Resources/ServerBanners/default-background.png"));
 
             PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("Data\\Resources\\ServerBanners\\default-font.ttf"); // HAN_NOM_B
+            collection.AddFontFile("Data/Resources/ServerBanners/default-font.ttf"); // HAN_NOM_B
             DefaultFontFamily = collection.Families[0];
             DefaultFontSize = 21;
 
@@ -44,7 +44,7 @@ namespace Chino_chan.Modules
             Logger.Log(LogType.WelcomeBanner, ConsoleColor.Magenta, "Load", "Default resources loaded!");
 
             Logger.Log(LogType.WelcomeBanner, ConsoleColor.Magenta, "Load", "Loading Server configurations...");
-            IEnumerable<string> serverFolders = Directory.EnumerateDirectories("Data\\Resources\\ServerBanners");
+            IEnumerable<string> serverFolders = Directory.EnumerateDirectories("Data/Resources/ServerBanners");
             foreach (string folder in serverFolders)
             {
                 IEnumerable<string> jsonFiles = Directory.EnumerateFiles(folder, "*.json");

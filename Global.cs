@@ -36,7 +36,7 @@ namespace Chino_chan
         {
             get
             {
-                return "Data\\Settings.json";
+                return "Data/Settings.json";
             }
         }
         private static TimeSpan StartedTime;
@@ -427,10 +427,10 @@ namespace Chino_chan
 
                     Task.Run(() =>
                     {
-                        if (!Directory.Exists("Data\\osu_cache"))
-                            Directory.CreateDirectory("Data\\osu_cache");
+                        if (!Directory.Exists("Data/osu_cache"))
+                            Directory.CreateDirectory("Data/osu_cache");
 
-                        Beatmaps = new BeatmapManager(Settings.Credentials.osu.Token, "Data\\osu_cache");
+                        Beatmaps = new BeatmapManager(Settings.Credentials.osu.Token, "Data/osu_cache");
                         Logger.Log(LogType.BeatmapManager, ConsoleColor.Green, null, "Loading downloaded beatmaps!");
                         Beatmaps.Load(Entrance.CancellationToken);
                         Logger.Log(LogType.BeatmapManager, ConsoleColor.Green, null, "Loading complete!");

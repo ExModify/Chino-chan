@@ -176,7 +176,7 @@ namespace Chino_chan.Modules
         }
         private string FormPath(string Filename)
         {
-            return $"Data\\Resources\\ServerBanners\\{ GuildId }\\{ Filename }";
+            return $"Data/Resources/ServerBanners/{ GuildId }/{ Filename }";
         }
     }
 }

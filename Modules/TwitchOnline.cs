@@ -58,9 +58,9 @@ namespace Chino_chan.Modules
 
             try
             {
-                if (File.Exists("Data\\TwitchTracking.json"))
+                if (File.Exists("Data/TwitchTracking.json"))
                 {
-                    TwitchLocal obj = JsonConvert.DeserializeObject<TwitchLocal>(File.ReadAllText("Data\\TwitchTracking.json"));
+                    TwitchLocal obj = JsonConvert.DeserializeObject<TwitchLocal>(File.ReadAllText("Data/TwitchTracking.json"));
 
                     Online.AddRange(obj.Online);
                     Offline.AddRange(obj.Offline);
@@ -125,7 +125,7 @@ namespace Chino_chan.Modules
                     }
                 }
 
-                File.WriteAllText("Data\\TwitchTracking.json", JsonConvert.SerializeObject(new TwitchLocal()
+                File.WriteAllText("Data/TwitchTracking.json", JsonConvert.SerializeObject(new TwitchLocal()
                 {
                     Online = Online,
                     Offline = Offline
