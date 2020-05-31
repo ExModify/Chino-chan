@@ -260,8 +260,13 @@ namespace Chino_chan.Modules
                     VoiceChannelId = Channel.Id;
                     await Context.Channel.SendMessageAsync(Language.GetEntry("MusicHandler:ConnectedTo", "NAME", Channel.Name));
                 }
-                catch
+                catch (Exception e)
                 {
+                    string msg = $"```${ e }```";
+                    if (Global.Client.GetChannel(Global.Settings.DevServer.ErrorReportChannelId) is ITextChannel errChannel)
+                    {
+                        await Global.SendMessageAsync(msg, errChannel);
+                    }
                     await Context.Channel.SendMessageAsync(Language.GetEntry("MusicHandler:CannotConnectToChannel"));
                     return false;
                 }
@@ -274,8 +279,13 @@ namespace Chino_chan.Modules
                     VoiceChannelId = UserChannel.Id;
                     await Context.Channel.SendMessageAsync(Language.GetEntry("MusicHandler:ConnectedTo", "NAME", UserChannel.Name));
                 }
-                catch
+                catch (Exception e)
                 {
+                    string msg = $"```${ e }```";
+                    if (Global.Client.GetChannel(Global.Settings.DevServer.ErrorReportChannelId) is ITextChannel errChannel)
+                    {
+                        await Global.SendMessageAsync(msg, errChannel);
+                    }
                     await Context.Channel.SendMessageAsync(Language.GetEntry("MusicHandler:CannotConnectToUser"));
                     return false;
                 }
