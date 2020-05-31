@@ -381,7 +381,8 @@ namespace Chino_chan
                                 if (Settings.DevServer.ErrorReportChannelId != 0)
                                 {
                                     ITextChannel channel = Client.GetChannel(Settings.DevServer.ErrorReportChannelId) as ITextChannel;
-                                    await channel.SendMessageAsync($"Error happened while declaring the SoundCloud client\n```\n{ e}\n```");
+                                    string message = $"Error happened while declaring the SoundCloud client\n```\n{ e }\n```";
+                                    await SendMessageAsync(message, channel);
                                 }
                             }
                         }
@@ -645,7 +646,8 @@ namespace Chino_chan
                             {
                                 if (Client.GetChannel(Global.Settings.DevServer.ErrorReportChannelId) is ITextChannel Channel)
                                 {
-                                    await Channel.SendMessageAsync($"```css\nError type: { Result.Error }\nReason: { Result.ErrorReason }```");
+                                    string message = $"```css\nError type: { Result.Error }\nReason: { Result.ErrorReason }```";
+                                    await SendMessageAsync(Message, Channel);
                                 }
                             }
                             await Context.Channel.SendMessageAsync(Language.GetEntry("Global:UnknownErrorOccured"));
@@ -1626,6 +1628,22 @@ namespace Chino_chan
             GC.WaitForPendingFinalizers();
             
             return new Color(R, G, B);
+        }
+        
+        public static async Task SendMessageAsync(string Message, ITextChannel Channel)
+        {
+            if (Message.Length > 1999)
+            {
+                while (File.Exists("Data/temp.txt"))
+                    await Task.Delay(100);
+                File.WriteAllText("Data/temp.txt", Message);
+                await Channel.SendFileAsync("Data/temp.txt");
+                File.Delete("Data/temp.txt");
+            }
+            else
+            {
+                await Channel.SendMessageAsync(Message);
+            }
         }
         #endregion
         #region Twitch

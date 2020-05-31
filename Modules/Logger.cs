@@ -91,11 +91,11 @@ namespace Chino_chan.Modules
             messages = new List<LogMessage>();
             if (!Entrance.IsHandler)
             {
-                if (!Directory.Exists("Log"))
+                if (!Directory.Exists("log"))
                 {
-                    Directory.CreateDirectory("Log");
+                    Directory.CreateDirectory("log");
                 }
-                IEnumerable<string> Filenames = Directory.EnumerateFiles("Log", "log.*.log").Select(t => t.ToLower());
+                IEnumerable<string> Filenames = Directory.EnumerateFiles("log", "log.*.log").Select(t => t.ToLower());
 
                 for (int i = 0; i < int.MaxValue; i++)
                 {
@@ -149,7 +149,8 @@ namespace Chino_chan.Modules
 
                         if (Client.ConnectionState == ConnectionState.Connected && log.Type != LogType.Discord.ToString())
                         {
-                            await logChannel.SendMessageAsync($"```css\n{ log }```");
+                            string msg = $"```css\n{ log }```";
+                            await Global.SendMessageAsync(msg, logChannel);
                         }
 
                         messages.RemoveAt(i);
