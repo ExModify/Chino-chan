@@ -378,7 +378,7 @@ namespace Chino_chan.Commands
             }
         }
 
-        [Command("queue"), Alias("list"), ServerCommand(), Summary("Lists all the songs from the queue")]
+        [Command("queue"), Alias("list", "playlist"), ServerCommand(), Summary("Lists all the songs from the queue")]
         public async Task SendQueueAsync(params string[] Args)
         {
             await Client.ListAsync(Context);
