@@ -647,7 +647,7 @@ namespace Chino_chan
                                 if (Client.GetChannel(Global.Settings.DevServer.ErrorReportChannelId) is ITextChannel Channel)
                                 {
                                     string message = $"```css\nError type: { Result.Error }\nReason: { Result.ErrorReason }```";
-                                    await SendMessageAsync(Message, Channel);
+                                    await SendMessageAsync(message, Channel);
                                 }
                             }
                             await Context.Channel.SendMessageAsync(Language.GetEntry("Global:UnknownErrorOccured"));
