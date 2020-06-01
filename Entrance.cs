@@ -197,7 +197,7 @@ namespace Chino_chan
                     Channel.SendMessageAsync(Channel?.GetSettings().GetLanguage().GetEntry("Global:GC_Complete"));
                 }
             }
-            else if (Trim == "quit")
+            else if (Trim == "quit" || Trim == "exit" || Trim == "shutdown")
             {
                 if (Channel != null)
                 {

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using YoutubeExplode;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Playlists;
+using System.Diagnostics;
 
 namespace Chino_chan.Commands
 {

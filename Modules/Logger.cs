@@ -80,6 +80,8 @@ namespace Chino_chan.Modules
     {
         public static event Action<LogMessage> NewLog;
 
+
+        private static string Folder { get; set; } = "log";
         private static string Filename { get; set; } = "";
 
         private static FileStream fs;
@@ -91,21 +93,22 @@ namespace Chino_chan.Modules
             messages = new List<LogMessage>();
             if (!Entrance.IsHandler)
             {
-                if (!Directory.Exists("log"))
+                if (!Directory.Exists(Folder))
                 {
-                    Directory.CreateDirectory("log");
+                    Directory.CreateDirectory(Folder);
                 }
-                IEnumerable<string> Filenames = Directory.EnumerateFiles("log", "log.*.log").Select(t => t.ToLower());
-
+                IEnumerable<string> Filenames = Directory.EnumerateFiles(Folder, "log.*.log").Select(t => t.ToLower().Substring(Folder.Length + 1));
+                Console.WriteLine(Filenames.ElementAt(0));
                 for (int i = 0; i < int.MaxValue; i++)
                 {
-                    Filename = "log/log." + i + ".log";
+                    Filename = "log." + i + ".log";
 
                     if (!Filenames.Contains(Filename))
                     {
                         break;
                     }
                 }
+                Filename = Path.Join(Folder, Filename);
 
                 fs = new FileStream(Filename, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
             }

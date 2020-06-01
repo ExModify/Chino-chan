@@ -454,7 +454,7 @@ namespace Chino_chan.Modules
         public async Task<List<Video>> SearchYouTubeVideoAsync(string Keywords)
         {
             YoutubeClient client = new YoutubeClient();
-            List<Video> Result = new List<Video>(await client.Search.GetVideosAsync(Keywords));
+            List<Video> Result = new List<Video>(await client.Search.GetVideosAsync(Keywords).BufferAsync(10));
             return Result;
         }
         public List<Track> SearchSoundCloudTrack(string Keywords)
