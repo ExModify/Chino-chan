@@ -98,7 +98,6 @@ namespace Chino_chan.Modules
                     Directory.CreateDirectory(Folder);
                 }
                 IEnumerable<string> Filenames = Directory.EnumerateFiles(Folder, "log.*.log").Select(t => t.ToLower().Substring(Folder.Length + 1));
-                Console.WriteLine(Filenames.ElementAt(0));
                 for (int i = 0; i < int.MaxValue; i++)
                 {
                     Filename = "log." + i + ".log";
