@@ -42,8 +42,6 @@ namespace Chino_chan
 
         static bool FirstRun = true;
 
-        static AnonymousPipeClientStream PipeInput;
-
         public static CancellationTokenSource CancellationTokenSource;
         public static CancellationToken CancellationToken;
         static TextReader InputStream;
@@ -66,16 +64,6 @@ namespace Chino_chan
                     if (Args[0] == "1")
                     {
                         IsHandler = true;
-
-                        try
-                        {
-                            PipeInput = new AnonymousPipeClientStream(PipeDirection.In, Args[1]);
-                            InputStream = new StreamReader(PipeInput);
-                        }
-                        catch (Exception e)
-                        {
-                            File.WriteAllText("AnonymousPipeClient_Exception.json", JsonConvert.SerializeObject(e, Formatting.Indented));
-                        }
 
                         DataSendTask = new Task(() =>
                         {
