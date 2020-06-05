@@ -1094,7 +1094,7 @@ namespace Chino_chan
             if (!File.Exists("libsodium.dll"))
             {
                 Logger.Log(LogType.ExternalModules, ConsoleColor.DarkBlue, "Sodium", "Sodium is missing, downloading...");
-                var Link = "https://exmodify.s-ul.eu/EXRESXDD.dll";
+                var Link = "https://exmodify.s-ul.eu/jrgGojQ3.dll";
                 var Client = new WebClient();
                 Client.DownloadFile(Link, "libsodium.dll");
                 if (File.Exists("libsodium.dll"))
@@ -1112,7 +1112,7 @@ namespace Chino_chan
             if (!File.Exists("opus.dll"))
             {
                 Logger.Log(LogType.ExternalModules, ConsoleColor.DarkBlue, "Opus", "Opus is missing, downloading...");
-                var Link = "https://exmodify.s-ul.eu/b5b2xIuK.dll";
+                var Link = "https://exmodify.s-ul.eu/Itzb4QWD.dll";
                 var Client = new WebClient();
                 Client.DownloadFile(Link, "opus.dll");
                 if (File.Exists("opus.dll"))
