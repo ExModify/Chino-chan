@@ -795,7 +795,7 @@ namespace Chino_chan.Modules
                 }
                 catch (Exception e)
                 {
-                    if (State == PlayerState.Disconnected) break;
+                    if (State == PlayerState.Disconnected || Client.ConnectionState == ConnectionState.Disconnected || Client.ConnectionState == ConnectionState.Disconnecting) break;
 
                     string cId = Channel.GetSettings().Language;
                     if (cId != lId)
