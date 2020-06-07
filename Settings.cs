@@ -34,6 +34,8 @@ namespace Chino_chan
         public int WebServerPort { get; set; } = 2465;
         public int APIPort { get; set; } = 2053;
 
+        public string WebsitePath { get; set; } = "D:/web/chino.exmodify.com/";
+
         public string SoundCloudClientId { get; set; } = "4dd97a35cf647de595b918944aa6915d";
 
         public Dictionary<ulong, int> osuDiscordUserDatabase { get; set; } = new Dictionary<ulong, int>();

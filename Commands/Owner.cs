@@ -1,4 +1,6 @@
-﻿using Chino_chan.Models.Settings;
+﻿using System.Reflection.PortableExecutable;
+using System.Diagnostics;
+using Chino_chan.Models.Settings;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -463,6 +465,86 @@ namespace Chino_chan.Commands
             }
         }
 
+        [Command("exec"), Models.Privileges.Owner(), Summary("Executes a PowerShell command")]
+        public async Task ExecAsync([Remainder]string Command)
+        {
+            ProcessStartInfo info = new ProcessStartInfo()
+            {
+                FileName = "powershell",
+                Arguments = Command.Replace("\"", "\\\""),
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            Process p = new Process() { StartInfo = info };
+            Stopwatch w = Stopwatch.StartNew();
+            p.Start();
+            p.WaitForExit();
+            w.Stop();
+            string output = p.StandardOutput.ReadToEnd();
+            string msg = $"Command executed in { w.ElapsedMilliseconds } ms!\n```\n{ output }\n```";
+            if (msg.Length > 2000)
+            {
+                MemoryStream ms = new MemoryStream();
+                StreamWriter sw = new StreamWriter(ms);
+                sw.Write(msg);
+                sw.Flush();
+                sw.Close();
+                await Context.Channel.SendFileAsync(ms, "result.txt");
+                ms.Close();
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync(msg);
+            }
+
+        }
+
+        [Command("addimg"), Models.Privileges.Owner(), Summary("Add image to a specific type if the website runs on the same server owo")]
+        public async Task AddImgAsync(params string[] args)
+        {
+            string imgFolder = Global.Settings.WebsitePath + "images/" + args[0];
+
+            if (!Directory.Exists(imgFolder))
+                Directory.CreateDirectory(imgFolder);
+
+            string[] files = Directory.EnumerateFiles(imgFolder).Select(t => Path.GetFileName(t)).ToArray();
+            string newFilename = args[0] + "";
+            foreach (string file in files)
+            {
+                if (file.Contains("_"))
+                {
+                    newFilename += "_";
+                }
+            }
+            newFilename += (files.Length + 1).ToString();
+
+            HttpClient c = new HttpClient();
+            Stream s = await c.GetStreamAsync(args[1]);
+            System.Drawing.Image img = System.Drawing.Image.FromStream(s);
+
+            var jpg = System.Drawing.Imaging.ImageFormat.Jpeg;
+            var gif = System.Drawing.Imaging.ImageFormat.Gif;
+            var png = System.Drawing.Imaging.ImageFormat.Png;
+
+            if (img.RawFormat == jpg)
+            {
+                newFilename += ".jpg";
+            }
+            else if (img.RawFormat == gif)
+            {
+                newFilename += ".gif";
+            }
+            else if (img.RawFormat == png)
+            {
+                newFilename += ".png";
+            }
+            
+            img.Save(newFilename);
+
+            await Context.Channel.SendMessageAsync("New file added!");
+
+        }
         /*
         [Command("test"), Models.Privileges.Owner(), Summary("owo")]
         public async Task TestCommandAsync(params string[] args)
