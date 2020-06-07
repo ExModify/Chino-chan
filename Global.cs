@@ -1669,10 +1669,17 @@ namespace Chino_chan
                 {
                     Title = "Twitch",
                     Color = Color.DarkPurple,
-                    Description = Text.Replace("@everyone", "").Replace("<everyone_mention>", ""),
-                    ImageUrl = ImageUrl,
-                    ThumbnailUrl = User.Avatar
+                    Description = Text.Replace("@everyone", "").Replace("<everyone_mention>", "")
                 };
+                try
+                {
+                    Builder.WithThumbnailUrl(User.Avatar);
+                    Builder.WithImageUrl(ImageUrl);
+                }
+                catch
+                {
+
+                }
 
                 return await Channel.SendMessageAsync(
                     Everyone ? (Test ? "<everyone_mention>" : "@everyone") : "",
