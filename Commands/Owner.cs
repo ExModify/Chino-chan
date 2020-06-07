@@ -503,19 +503,16 @@ namespace Chino_chan.Commands
         [Command("addimg"), Models.Privileges.Owner(), Summary("Add image to a specific type if the website runs on the same server owo")]
         public async Task AddImgAsync(params string[] args)
         {
-            string imgFolder = Global.Settings.WebsitePath + "images/" + args[0];
+            string imgFolder = Global.Settings.WebsitePath + "images/" + args[0] + "/";
 
             if (!Directory.Exists(imgFolder))
                 Directory.CreateDirectory(imgFolder);
 
             string[] files = Directory.EnumerateFiles(imgFolder).Select(t => Path.GetFileName(t)).ToArray();
-            string newFilename = args[0] + "";
-            foreach (string file in files)
+            string newFilename = imgFolder + args[0] + "";
+            if (files[0].Contains("_"))
             {
-                if (file.Contains("_"))
-                {
-                    newFilename += "_";
-                }
+                newFilename += "_";
             }
             newFilename += (files.Length + 1).ToString();
 
@@ -539,7 +536,7 @@ namespace Chino_chan.Commands
             {
                 newFilename += ".png";
             }
-            
+
             img.Save(newFilename);
 
             await Context.Channel.SendMessageAsync("New file added!");
