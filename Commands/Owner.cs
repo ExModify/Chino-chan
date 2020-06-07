@@ -1,4 +1,5 @@
-﻿using System.Reflection.PortableExecutable;
+﻿using System.Net.Http.Headers;
+using System.Reflection.PortableExecutable;
 using System.Diagnostics;
 using Chino_chan.Models.Settings;
 using Discord;
@@ -16,6 +17,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
+using System.Net.Mime;
 
 namespace Chino_chan.Commands
 {
@@ -500,7 +502,7 @@ namespace Chino_chan.Commands
 
         }
 
-        [Command("addimg"), Models.Privileges.Owner(), Summary("Add image to a specific type if the website runs on the same server owo")]
+        [Command("addimg"), Models.Privileges.Owner(), Summary("Add image to a specific type if the website runs on the same server owo | type url [extension]")]
         public async Task AddImgAsync(params string[] args)
         {
             string imgFolder = Global.Settings.WebsitePath + "images/" + args[0] + "/";
@@ -517,29 +519,48 @@ namespace Chino_chan.Commands
             newFilename += (files.Length + 1).ToString();
 
             HttpClient c = new HttpClient();
-            Stream s = await c.GetStreamAsync(args[1]);
-            System.Drawing.Image img = System.Drawing.Image.FromStream(s);
+            HttpResponseMessage response = await c.GetAsync(args[1]);
 
-            var jpg = System.Drawing.Imaging.ImageFormat.Jpeg;
-            var gif = System.Drawing.Imaging.ImageFormat.Gif;
-            var png = System.Drawing.Imaging.ImageFormat.Png;
-
-            if (img.RawFormat == jpg)
+            string extension = "";
+            if (args.Length > 2)
             {
-                newFilename += ".jpg";
+                extension = args[2];
             }
-            else if (img.RawFormat == gif)
+            else
             {
-                newFilename += ".gif";
-            }
-            else if (img.RawFormat == png)
-            {
-                newFilename += ".png";
+                try
+                {
+                    ContentDispositionHeaderValue disposition = response.Content.Headers.ContentDisposition;
+                    extension = Path.GetExtension(disposition.FileName);
+                    if (extension == "")
+                        throw new Exception();
+                }
+                catch
+                {
+                    try
+                    {
+                        MediaTypeHeaderValue contentType = response.Content.Headers.ContentType;
+                        extension = Path.GetExtension(contentType.MediaType.Split('/')[1]);
+
+                        if (extension == "")
+                            throw new Exception();
+                    }
+                    catch
+                    {
+                        await Context.Channel.SendMessageAsync("Couldn't find file type! Please give extension for the 3rd parameter!");
+                        return;
+                    }
+                }
             }
 
-            img.Save(newFilename);
+            newFilename += "." + extension;
 
-            await Context.Channel.SendMessageAsync("New file added!");
+            Stream s = await response.Content.ReadAsStreamAsync();
+            FileStream fs = new FileStream(newFilename, FileMode.Create);
+            s.CopyTo(fs);
+            fs.Close();
+            s.Close();
+            await Context.Channel.SendMessageAsync($"New file added! Path: { newFilename }!");
 
         }
         /*
