@@ -149,7 +149,9 @@ namespace Chino_chan.Modules
                     {
                         LogMessage log = messages[i];
 
-                        if (Client.ConnectionState == ConnectionState.Connected && log.Type != LogType.Discord.ToString())
+                        if (Client.ConnectionState == ConnectionState.Connected && 
+                                (log.Type == LogType.Commands.ToString() || 
+                                log.Color == ConsoleColor.Red))
                         {
                             string msg = $"```css\n{ log }```";
                             await Global.SendMessageAsync(msg, logChannel);

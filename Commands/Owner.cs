@@ -540,7 +540,7 @@ namespace Chino_chan.Commands
                     try
                     {
                         MediaTypeHeaderValue contentType = response.Content.Headers.ContentType;
-                        extension = Path.GetExtension(contentType.MediaType.Split('/')[1]);
+                        extension = contentType.MediaType.Split('/')[1];
 
                         if (extension == "")
                             throw new Exception();
