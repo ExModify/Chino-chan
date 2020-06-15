@@ -86,80 +86,58 @@ namespace Chino_chan
             return new Regex(@"<[@|#]\d*>");
         }
         
-        public static IGuildUser ParseUser(string Input, bool SearchGlobally, ICommandContext Context = null)
+        public static IGuildUser ParseUser(string Input, bool SearchGlobal = false, ICommandContext Context = null)
         {
             if (Input.Trim() == "")
-                return null;
+                if (Context == null)
+                    return null;
+                else return Context.Guild.GetUserAsync(Context.User.Id).Result;
 
             if (Context.Message.MentionedUserIds.Count > 0 && Context.Channel is IGuildChannel guildChannel)
             {
                 return guildChannel.GetUserAsync(Context.Message.MentionedUserIds.First()).Result;
             }
 
-            Input = Input.ToLower();
-
-            var ReturnedUsers = new List<IGuildUser>();
-            var Users = new List<IGuildUser>();
-            
-            if (SearchGlobally)
+            if (ulong.TryParse(Input, out ulong parsedId) || (parsedId = GetHlId(Input)) != 0)
             {
-                ulong Id = 0;
-                if (Context?.Guild != null)
-                {
-                    Id = Context.Guild.Id;
-                    SocketGuild guild = Global.Client.GetGuild(Id);
-                    guild.DownloadUsersAsync().GetAwaiter().GetResult();
-                    Users.AddRange(Global.Client.GetGuild(Id).Users);
-                }
-                foreach (var Guild in Global.Client.Guilds)
-                {
-                    if (Id == Guild.Id) continue;
-                    Guild.DownloadUsersAsync().GetAwaiter().GetResult();
-                    Users.AddRange(Guild.Users);
-                }
+                return Context.Guild.GetUserAsync(parsedId).Result;
             }
             else
             {
-                if (Context?.Guild != null)
+                Input = Input.ToLower();
+                if (Context?.Guild == null)
                 {
-                    Users.AddRange(Context.Guild.GetUsersAsync().Result);
+                    return null;
                 }
-            }
-            bool checkId = ulong.TryParse(Input, out ulong ParsedId);
-            if (!checkId)
-            {
-                ParsedId = GetHlId(Input);
-                checkId = ParsedId != 0;
-            }
-            for (int i = 0; i < Users.Count; i++)
-            {
-                IGuildUser User = Users[i];
-
-                if (checkId)
+                else
                 {
-                    if (User.Id == ParsedId)
+                    List<IGuildUser> users = new List<IGuildUser>();
+                    if (SearchGlobal)
                     {
-                        ReturnedUsers.Add(User);
-                        break;
+                        foreach (SocketGuild guild in Global.Client.Guilds)
+                        {
+                            users.AddRange(guild.SearchUsersAsync(Input).Result);
+                        }
                     }
-                }
-                if (User.Username.ToLower().Contains(Input) || (User.Nickname ?? "").ToLower().Contains(Input))
-                {
-                    ReturnedUsers.Add(User);
+                    else
+                    {
+                        users.AddRange(Context.Guild.SearchUsersAsync(Input).Result);
+                    }
+
+                    for (int i = 0; i < users.Count; i++)
+                    {
+                        IGuildUser User = users[i];
+
+                        if (User.Username.ToLower() == Input || (User.Nickname ?? "").ToLower() == Input)
+                            return users[i];
+                    }
+                    
+                    if (users.Count > 0)
+                        return users.OrderBy(t => Math.Abs(t.Username.ToLower().CompareTo(Input))).ElementAt(0);
+                    return null;
+
                 }
             }
-
-            for (int i = 0; i < ReturnedUsers.Count; i++)
-            {
-                IGuildUser User = ReturnedUsers[i];
-
-                if (User.Username.ToLower() == Input || (User.Nickname ?? "").ToLower() == Input)
-                    return ReturnedUsers[i];
-            }
-
-            if (ReturnedUsers.Count > 0)
-                return ReturnedUsers.OrderBy(t => Math.Abs(t.Username.ToLower().CompareTo(Input))).ElementAt(0);
-            else return null;
         }
 
         public static uint GetHighestRoleColor(IGuildUser User)
