@@ -660,12 +660,6 @@ namespace Chino_chan
                 }
             };
 
-            Client.GuildAvailable += guild =>
-            {
-                Logger.Log(LogType.Commands, ConsoleColor.White, guild.Name, $"The guild has { guild.Users.Count } users.");
-                return Task.CompletedTask;
-            };
-
             #region Role assign
             Client.ReactionAdded += async (Cache, Channel, Reaction) =>
             {
