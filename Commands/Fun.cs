@@ -806,14 +806,15 @@ namespace Chino_chan.Commands
                 await Context.Message.DeleteAsync();
                 return;
             }
-
+            string url = null;
             try
             {
-                string url = GetImage("lick");
+                url = GetImage("lick");
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
                 builder.Title = GetEntry("CouldNotGetImage");
             }
             if (targets == "")
