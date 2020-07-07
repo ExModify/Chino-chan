@@ -241,13 +241,15 @@ namespace Chino_chan.Commands
                 return;
             }
             string url = null;
+            string content = "";
             try
             {
-                url = GetImage(Settings.AllowLoliContent ? "fuck_loli" : "fuck");
+                url = GetImage(Settings.AllowLoliContent ? "fuck_loli" : "fuck", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
                 Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
                 builder.Title = GetEntry("CouldNotGetImage");
             }
@@ -333,7 +335,7 @@ namespace Chino_chan.Commands
             return targets;
         }
 
-        private string GetImage(string Type)
+        private string GetImage(string Type, ref string content)
         {
             WebClient client = new WebClient();
             Type = Type.ToLower();
@@ -342,6 +344,8 @@ namespace Chino_chan.Commands
 
 
             string data = client.DownloadString(url);
+    
+            content = data;
 
             ChinoResponse resp = default;
             try

@@ -454,13 +454,16 @@ namespace Chino_chan.Commands
                 Color = EmbedColor
             };
 
+            string content = "";
+
             try
             {
-                string url = GetImage("bite");
+                string url = GetImage("bite", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -486,13 +489,17 @@ namespace Chino_chan.Commands
                 Color = EmbedColor
             };
 
+            string content = "";
+
             try
             {
-                string url = GetImage("cuddle");
+                string url = GetImage("cuddle", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
+
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -518,13 +525,16 @@ namespace Chino_chan.Commands
                 Color = EmbedColor
             };
 
+            string content = "";
+
             try
             {
-                string url = GetImage("hug");
+                string url = GetImage("hug", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -550,14 +560,16 @@ namespace Chino_chan.Commands
             {
                 Color = EmbedColor
             };
-
+            string content = "";
             try
             {
-                string url = GetImage("pat");
+                string url = GetImage("pat", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -590,13 +602,17 @@ namespace Chino_chan.Commands
                 await Context.Message.DeleteAsync();
                 return;
             }
+
+            string content = "";
             try
             {
-                string url = GetImage("kiss");
+                string url = GetImage("kiss", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -630,13 +646,17 @@ namespace Chino_chan.Commands
                 Color = EmbedColor
             };
 
+            string content = "";
+
             try
             {
-                string url = GetImage("bongocat");
+                string url = GetImage("bongocat", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -650,14 +670,16 @@ namespace Chino_chan.Commands
             {
                 Color = EmbedColor
             };
-
+            string content = "";
             try
             {
-                string url = GetImage("pout");
+                string url = GetImage("pout", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -682,14 +704,16 @@ namespace Chino_chan.Commands
             {
                 Color = EmbedColor
             };
-
+            string content = "";
             try
             {
-                string url = GetImage("poke");
+                string url = GetImage("poke", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -715,13 +739,17 @@ namespace Chino_chan.Commands
                 Color = EmbedColor
             };
 
+            string content = "";
+
             try
             {
-                string url = GetImage("tickle");
+                string url = GetImage("tickle", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
+                
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
 
@@ -774,13 +802,16 @@ namespace Chino_chan.Commands
             }
             else
             {
+                string content = "";
                 try
                 {
-                    string url = GetImage("slap");
+                    string url = GetImage("slap", ref content);
                     builder.ImageUrl = url ?? throw new Exception();
                 }
                 catch
                 {
+                    
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                     builder.Title = GetEntry("CouldNotGetImage");
                 }
 
@@ -807,14 +838,17 @@ namespace Chino_chan.Commands
                 return;
             }
             string url = null;
+            string content = "";
             try
             {
-                url = GetImage("lick");
+                url = GetImage("lick", ref content);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
                 Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
+                
+                Logger.Log(LogType.Commands, ConsoleColor.White, "Data", content);
                 builder.Title = GetEntry("CouldNotGetImage");
             }
             if (targets == "")
@@ -971,7 +1005,7 @@ namespace Chino_chan.Commands
                 await Context.Channel.SendMessageAsync(GetGlobalEntry("NoImagesOfTag", "TAGS", string.Join(" ", Args)));
             }
         }
-        private string GetImage(string Type)
+        private string GetImage(string Type, ref string content)
         {
             WebClient client = new WebClient();
             Type = Type.ToLower();
@@ -979,6 +1013,8 @@ namespace Chino_chan.Commands
             string url = Global.Settings.ApiUrl + "getimg?k=" + Global.Settings.ApiKey + "&type=" + Type;
 
             string data = client.DownloadString(url);
+
+            content = data;
 
             ChinoResponse resp = default;
             try
