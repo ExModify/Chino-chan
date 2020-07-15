@@ -443,6 +443,13 @@ namespace Chino_chan.Commands
                 HP = CalcHRParameter(HP);
                 OD = CalcHRParameter(OD);
             }
+            else if (mods.HasFlag(Mods.Easy))
+            {
+                AR /= 2;
+                CS /= 2;
+                HP /= 2;
+                OD /= 2;
+            }
             if (mods.HasFlag(Mods.DoubleTime))
             {
                 AR = CalcDTParameter(AR);
@@ -656,6 +663,13 @@ namespace Chino_chan.Commands
                 HP = CalcHRParameter(HP);
                 OD = CalcHRParameter(OD);
             }
+            else if (mods.HasFlag(Mods.Easy))
+            {
+                AR /= 2;
+                CS /= 2;
+                HP /= 2;
+                OD /= 2;
+            }
             if (mods.HasFlag(Mods.DoubleTime))
             {
                 AR = CalcDTParameter(AR);
@@ -804,6 +818,13 @@ namespace Chino_chan.Commands
                     CS = (float)(CS * 1.3);
                     HP = CalcHRParameter(HP);
                     OD = CalcHRParameter(OD);
+                }
+                else if (mods.HasFlag(Mods.Easy))
+                {
+                    AR /= 2;
+                    CS /= 2;
+                    HP /= 2;
+                    OD /= 2;
                 }
 
                 if (mods.HasFlag(Mods.DoubleTime))
