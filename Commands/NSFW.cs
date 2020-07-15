@@ -219,7 +219,7 @@ namespace Chino_chan.Commands
             await Context.Channel.SendMessageAsync("", embed: Builder.Build());
         }
 
-        [Command("fuck"), Summary("Fucks someones by mentioning them - l-lewd >.>")]
+        [Command("fuck"), Alias("fucc"), Summary("Fucks someones by mentioning them - l-lewd >.>")]
         public async Task BiteAsync(params string[] Args)
         {
             if (!Global.IsNsfwChannel(Settings, Context.Channel.Id))
@@ -241,15 +241,13 @@ namespace Chino_chan.Commands
                 return;
             }
             string url = null;
-            string content = "";
             try
             {
-                url = GetImage(Settings.AllowLoliContent ? "fuck_loli" : "fuck", ref content);
+                url = GetImage(Settings.AllowLoliContent ? "fuck_loli" : "fuck");
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
             {
-                Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
                 Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
                 builder.Title = GetEntry("CouldNotGetImage");
             }
@@ -335,7 +333,7 @@ namespace Chino_chan.Commands
             return targets;
         }
 
-        private string GetImage(string Type, ref string content)
+        private string GetImage(string Type)
         {
             WebClient client = new WebClient();
             Type = Type.ToLower();
@@ -345,8 +343,6 @@ namespace Chino_chan.Commands
 
             string data = client.DownloadString(url);
     
-            content = data;
-
             ChinoResponse resp = default;
             try
             {
