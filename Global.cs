@@ -1670,13 +1670,13 @@ namespace Chino_chan
                 resp = JsonConvert.DeserializeObject<ChinoResponse>(data);
                 if (resp.Files == null || resp.Files.Length == 0)
                 {
-                    Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", data);
+                    Logger.Log(LogType.Commands, ConsoleColor.White, "ImageCDN", data);
                     return null;
                 }
             }
             catch (Exception e)
             {
-                Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", e.ToString());
+                Logger.Log(LogType.Commands, ConsoleColor.White, "ImageCDN", e.ToString());
                 return null;
             }
 
@@ -1721,6 +1721,7 @@ namespace Chino_chan
 
             url = Global.Settings.ImageCDN + file;
             client.Dispose();
+            Logger.Log(LogType.Commands, ConsoleColor.White, "ImageCDN", "Next URL is: " + url);
             return url;
         }
         #endregion
