@@ -25,12 +25,6 @@ namespace Chino_chan.Commands
                 return Global.Client.GetGuild(Global.Settings.DevServer.Id);
             }
         }
-        private struct ChinoResponse
-        {
-            public string[] files { get; set; }
-            public string error { get; set; }
-        }
-
         public Color EmbedColor = Color.Magenta;
 
         [Command("nhentai"), Summary("Search doujinshis [18+, nsfw channels only]\nAvailable prefixes: character, tag, group, artist, parody, random\nExamples:\n- artist: nhentai artist shiratama\n- search: nhentai chino-chan to ecchi")]
@@ -105,7 +99,7 @@ namespace Chino_chan.Commands
                 Response.Close();
                 Request.Abort();
 
-                Regex PageRegex = new Regex("<a href=\\\"\\?page=(.*?)\\\" class=\\\"last\\\">");
+                Regex PageRegex = new Regex(@"<a href=\""[^;]*;page=(.*?)\"" class=\""last\"">");
 
                 if (PageRegex.IsMatch(Content))
                 {
@@ -134,7 +128,7 @@ namespace Chino_chan.Commands
                     return;
                 }
 
-                MatchCollection Collection = new Regex("<a href=\\\"\\/(.*)\\\" class=\\\"cover\\\"").Matches(Content);
+                MatchCollection Collection = new Regex(@"<a href=""\/(.*)"" class=""cover""").Matches(Content);
 
                 Match RandomMatch = Collection[Global.Random.Next(0, Collection.Count)];
 
@@ -150,10 +144,16 @@ namespace Chino_chan.Commands
             }
 
             string Url = Response.ResponseUri.ToString();
-            string Title = Regex.Match(Content, "\\<title\\>(.*)\\<\\/title\\>").Groups[1].Value;
-            string Thumbnail = Regex.Match(Content, "\"(https:\\/\\/t.nhentai.net\\/galleries\\/\\d*\\/cover.\\S*)\"").Groups[1].Value;
 
-            Regex TagsRegex = new Regex("<a href=\"\\S*\" class=\"tag\\stag-\\d*\\s\">([^<]*) <span class=\"count\">\\(\\S*\\)<\\/span><\\/a>");
+            string spans = Content.Split("<h1 class=\"title\"><span class=\"before\">")[1].Split("</span></h1>")[0];
+            string[] splitSpans = spans.Split("</span><span class=\"pretty\">");
+            string Title = splitSpans[0];
+            splitSpans = splitSpans[1].Split("</span><span class=\"after\">");
+            Title += splitSpans[0] + splitSpans[1];
+
+            string Thumbnail = Regex.Match(Content, @"https:\/\/t\.nhentai\.net\/galleries\/\d*\/cover\.[^""]*").Value;
+
+            Regex TagsRegex = new Regex(@"<a href=""[^""]*"" class=""tag\s[^""]*""><span class=""name"">([^""]*)<\/span>");
             MatchCollection TagCollection = TagsRegex.Matches(Content);
             List<string> Tags = new List<string>(TagCollection.Cast<Match>().Select(t => t.Groups[1].Value));
 
@@ -220,7 +220,7 @@ namespace Chino_chan.Commands
         }
 
         [Command("fuck"), Alias("fucc"), Summary("Fucks someones by mentioning them - l-lewd >.>")]
-        public async Task BiteAsync(params string[] Args)
+        public async Task FuckAsync(params string[] Args)
         {
             if (!Global.IsNsfwChannel(Settings, Context.Channel.Id))
             {
@@ -243,7 +243,7 @@ namespace Chino_chan.Commands
             string url = null;
             try
             {
-                url = GetImage(Settings.AllowLoliContent ? "fuck_loli" : "fuck");
+                url = Global.GetImageFromCDN(Settings.AllowLoliContent ? "fuck_loli" : "fuck", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -256,6 +256,62 @@ namespace Chino_chan.Commands
                 if (owner)
                 {
                     builder.Description = GetEntry("OwnerDescription");
+                }
+                else
+                {
+                    builder.Description = GetEntry("NoTargetDescription");
+                    builder.Title = "";
+                    builder.ImageUrl = "";
+                }
+            }
+            else
+            {
+                builder.Description = GetEntry("TargetDescription", "WHO", Context.Message.Author.Mention, "TARGETS", targets);
+            }
+            builder.Description = Global.ProcessEmotes(builder.Description, DevGuild).Limit();
+
+            await Context.Channel.SendMessageAsync("", embed: builder.Build());
+        }
+
+        [Command("suck"), Alias("succ"), Summary("Sucks people by mentioning them - >///>")]
+        public async Task SuckAsync(params string[] Args)
+        {
+            if (!Global.IsNsfwChannel(Settings, Context.Channel.Id))
+            {
+                await Context.Channel.SendMessageAsync(GetEntry("OnlyNSFW"));
+                return;
+            }
+
+            EmbedBuilder builder = new EmbedBuilder()
+            {
+                Color = EmbedColor
+            };
+
+            bool owner = Global.IsOwner(Context.Message.Author.Id) || Context.User.Id == 191650823682392064;
+            string targets = await GetTargetsAsync(!owner);
+            if (Global.BlockExMoTarget(targets, Context.Message.Author.Id))
+            {
+                await Context.Message.DeleteAsync();
+                return;
+            }
+            string url = null;
+            try
+            {
+                url = Global.GetImageFromCDN("suck", Settings);
+                builder.ImageUrl = url ?? throw new Exception();
+            }
+            catch
+            {
+                Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
+                builder.Title = GetEntry("CouldNotGetImage");
+            }
+            if (targets == "")
+            {
+                if (owner)
+                {
+                    builder.Description = GetEntry("OwnerDescription");
+                    builder.Title = "";
+                    builder.ImageUrl = "";
                 }
                 else
                 {
@@ -333,74 +389,6 @@ namespace Chino_chan.Commands
             return targets;
         }
 
-        private string GetImage(string Type)
-        {
-            WebClient client = new WebClient();
-            Type = Type.ToLower();
-
-            string url = Global.Settings.ApiUrl + "getimg?k=" + Global.Settings.ApiKey + "&type=" + Type;
-
-
-            string data = client.DownloadString(url);
-    
-            ChinoResponse resp = default;
-            try
-            {
-                resp = JsonConvert.DeserializeObject<ChinoResponse>(data);
-                if (resp.files == null || resp.files.Length == 0)
-                {
-                    Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", data);
-                    return null;
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", e.ToString());
-                return null;
-            }
-
-
-            string file = Type + "/";
-            List<string> files = new List<string>(resp.files);
-            files.RemoveAll(t => t == "." || t == "..");
-            bool contains = false;
-            bool clear = false;
-
-            if (Settings.ImageHostImage.ContainsKey(Type))
-            {
-                files.RemoveAll(t => Settings.ImageHostImage[Type].Contains(t));
-
-                if (files.Count == 0)
-                {
-                    files = new List<string>(resp.files);
-                    files.RemoveAll(t => t == "." || t == "..");
-                    clear = true;
-                }
-                contains = true;
-            }
-
-            string f = files[Global.Random.Next(0, files.Count)];
-            Global.GuildSettings.Modify(Settings.GuildId, t =>
-            {
-                if (contains)
-                {
-                    if (clear) t.ImageHostImage[Type].Clear();
-                    t.ImageHostImage[Type].Add(f);
-                }
-                else
-                {
-                    t.ImageHostImage.Add(Type, new List<string>()
-                    {
-                        f
-                    });
-                }
-            });
-            file += f;
-
-
-            url = Global.Settings.ImageCDN + file;
-            client.Dispose();
-            return url;
-        }
+        
     }
 }

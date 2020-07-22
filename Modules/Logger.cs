@@ -141,6 +141,8 @@ namespace Chino_chan.Modules
         {
             SocketGuild dev = Client.GetGuild(Global.Settings.DevServer.Id);
             ITextChannel logChannel = dev.GetTextChannel(Global.Settings.DevServer.LogChannelId);
+            bool initiallyNull = logChannel == null;
+
             sendTask = new Task(async () =>
             {
                 while (!Entrance.CancellationTokenSource.IsCancellationRequested)
@@ -154,7 +156,22 @@ namespace Chino_chan.Modules
                                 log.Color == ConsoleColor.Red))
                         {
                             string msg = $"```css\n{ log }```";
-                            await Global.SendMessageAsync(msg, logChannel);
+                            if (logChannel == null && !initiallyNull)
+                            {
+                                try
+                                {
+                                    SocketGuild dev = Client.GetGuild(Global.Settings.DevServer.Id);
+                                    ITextChannel logChannel = dev.GetTextChannel(Global.Settings.DevServer.LogChannelId);
+                                }
+                                catch
+                                {
+                                    
+                                }
+                            }
+                            if (logChannel != null)
+                            {
+                                await Global.SendMessageAsync(msg, logChannel);
+                            }
                         }
 
                         messages.RemoveAt(i);

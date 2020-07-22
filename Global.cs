@@ -1,6 +1,7 @@
 using Chino_chan.Image;
 using Chino_chan.Modules;
 using Chino_chan.Models.Settings;
+using Chino_chan.Models.Image;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -1310,15 +1311,22 @@ namespace Chino_chan
         {
             while (Saving) Thread.Sleep(100);
             Saving = true;
-            if (File.Exists(SettingsPath))
-            {
-                File.Delete(SettingsPath);
-            }
+            Attempt:
             if (!Directory.Exists("Data"))
             {
                 Directory.CreateDirectory("Data");
             }
-            File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+
+            try
+            {
+                File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(Settings, Formatting.Indented));
+            }
+            catch
+            {
+                Logger.Log(LogType.Error, ConsoleColor.Red, "Settings", "Failed to save settings! Attempting to save after 1 second...");
+                Thread.Sleep(1000);
+                goto Attempt;
+            }
             Saving = false;
         }
         #endregion
@@ -1644,6 +1652,76 @@ namespace Chino_chan
             {
                 await Channel.SendMessageAsync(Message);
             }
+        }
+        
+        public static string GetImageFromCDN(string Type, GuildSetting Settings)
+        {
+            WebClient client = new WebClient();
+            Type = Type.ToLower();
+
+            string url = Global.Settings.ApiUrl + "getimg?k=" + Global.Settings.ApiKey + "&type=" + Type;
+
+
+            string data = client.DownloadString(url);
+    
+            ChinoResponse resp = default;
+            try
+            {
+                resp = JsonConvert.DeserializeObject<ChinoResponse>(data);
+                if (resp.Files == null || resp.Files.Length == 0)
+                {
+                    Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", data);
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", e.ToString());
+                return null;
+            }
+
+
+            string file = Type + "/";
+            List<string> files = new List<string>(resp.Files);
+            files.RemoveAll(t => t == "." || t == "..");
+            bool contains = false;
+            bool clear = false;
+
+            if (Settings.ImageHostImage.ContainsKey(Type))
+            {
+                files.RemoveAll(t => Settings.ImageHostImage[Type].Contains(t));
+
+                if (files.Count == 0)
+                {
+                    files = new List<string>(resp.Files);
+                    files.RemoveAll(t => t == "." || t == "..");
+                    clear = true;
+                }
+                contains = true;
+            }
+
+            string f = files[Global.Random.Next(0, files.Count)];
+            Global.GuildSettings.Modify(Settings.GuildId, t =>
+            {
+                if (contains)
+                {
+                    if (clear) t.ImageHostImage[Type].Clear();
+                    t.ImageHostImage[Type].Add(f);
+                }
+                else
+                {
+                    t.ImageHostImage.Add(Type, new List<string>()
+                    {
+                        f
+                    });
+                }
+            });
+            file += f;
+
+
+            url = Global.Settings.ImageCDN + file;
+            client.Dispose();
+            return url;
         }
         #endregion
         #region Twitch

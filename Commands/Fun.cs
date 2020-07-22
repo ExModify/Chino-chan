@@ -30,12 +30,6 @@ namespace Chino_chan.Commands
                 return Global.Client.GetGuild(Global.Settings.DevServer.Id);
             }
         }
-        private struct ChinoResponse
-        {
-            public string[] Files { get; set; }
-            public string Error { get; set; }
-        }
-
         public Color EmbedColor = Color.Magenta;
 
         [Command("avatar"), Summary("Gets the avatar of a user by username, nickname or user id owo")]
@@ -456,7 +450,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("bite");
+                url = Global.GetImageFromCDN("bite", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -489,7 +483,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("cuddle");
+                url = Global.GetImageFromCDN("cuddle", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -522,7 +516,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("hug");
+                url = Global.GetImageFromCDN("hug", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -556,7 +550,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("pat");
+                url = Global.GetImageFromCDN("pat", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -597,7 +591,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("kiss");
+                url = Global.GetImageFromCDN("kiss", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -638,7 +632,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("bongocat");
+                url = Global.GetImageFromCDN("bongocat", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -660,7 +654,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("pout");
+                url = Global.GetImageFromCDN("pout", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -693,7 +687,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("poke");
+                url = Global.GetImageFromCDN("poke", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -726,7 +720,7 @@ namespace Chino_chan.Commands
             string url = "";
             try
             {
-                url = GetImage("tickle");
+                url = Global.GetImageFromCDN("tickle", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -787,7 +781,7 @@ namespace Chino_chan.Commands
                 string url = "";
                 try
                 {
-                    url = GetImage("slap");
+                    url = Global.GetImageFromCDN("slap", Settings);
                     builder.ImageUrl = url ?? throw new Exception();
                 }
                 catch
@@ -803,7 +797,7 @@ namespace Chino_chan.Commands
             await Context.Channel.SendMessageAsync("", embed: builder.Build());
         }
 
-        [Command("lick"), Summary("Lick someone by mentioning them uwu")]
+        [Command("lick"), Alias("licc"), Summary("Lick someone by mentioning them uwu")]
         public async Task LickAsync(params string[] _)
         {
             EmbedBuilder builder = new EmbedBuilder()
@@ -821,7 +815,7 @@ namespace Chino_chan.Commands
             string url = null;
             try
             {
-                url = GetImage("lick");
+                url = Global.GetImageFromCDN("lick", Settings);
                 builder.ImageUrl = url ?? throw new Exception();
             }
             catch
@@ -983,74 +977,6 @@ namespace Chino_chan.Commands
                 await Context.Channel.SendMessageAsync(GetGlobalEntry("NoImagesOfTag", "TAGS", string.Join(" ", Args)));
             }
         }
-        private string GetImage(string Type)
-        {
-            WebClient client = new WebClient();
-            Type = Type.ToLower();
-
-            string url = Global.Settings.ApiUrl + "getimg?k=" + Global.Settings.ApiKey + "&type=" + Type;
-
-            string data = client.DownloadString(url);
-
-            ChinoResponse resp = default;
-            try
-            {
-                resp = JsonConvert.DeserializeObject<ChinoResponse>(data);
-                if (resp.Files == null || resp.Files.Length == 0)
-                {
-                    Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", data);
-                    return null;
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.Log(LogType.Error, ConsoleColor.Red, "NSFW:Fuck", e.ToString());
-                return null;
-            }
-
-            string file = Type + "/";
-            List<string> files = new List<string>(resp.Files);
-            files.RemoveAll(t => t == "." || t == "..");
-            bool contains = false;
-            bool clear = false;
-
-            if (Settings.ImageHostImage.ContainsKey(Type))
-            {
-                files.RemoveAll(t => Settings.ImageHostImage[Type].Contains(t));
-
-                if (files.Count == 0)
-                {
-                    files = new List<string>(resp.Files);
-                    files.RemoveAll(t => t == "." || t == "..");
-                    clear = true;
-                }
-                contains = true;
-            }
-
-            string f = files[Global.Random.Next(0, files.Count)];
-            Global.GuildSettings.Modify(Settings.GuildId, t =>
-            {
-                if (contains)
-                {
-                    if (clear) t.ImageHostImage[Type].Clear();
-                    t.ImageHostImage[Type].Add(f);
-                }
-                else
-                {
-                    t.ImageHostImage.Add(Type, new List<string>()
-                    {
-                        f
-                    });
-                }
-            });
-            file += f;
-
-
-            url = Global.Settings.ImageCDN + file;
-            client.Dispose();
-            return url;
-        }
-
     }
 
     public static class StringExtension
