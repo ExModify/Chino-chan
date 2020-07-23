@@ -443,7 +443,7 @@ namespace Chino_chan.Commands
         [Command("submention"), Summary("You'll get mentioned at specific tag posts if you subscribe to them\n\n-\tFirst get subbed tags with `{PREFIX}listsubtag`\n-\tThen use `{PREFIX}submention [Id]` to sub / remove sub from a tag"), ServerCommand]
         public async Task SubMentionAsync(int Index)
         {
-            ModifyResult res = Global.SubTagHandler.ModifyMentions(Context.Channel.Id, Index, Context.User.Id);
+            ModifyResult res = Global.SubTagHandler.ModifyMentions(Context.Channel.Id, Index - 1, Context.User.Id);
             switch (res)
             {
                 case ModifyResult.NoSubtagsInChannel:
