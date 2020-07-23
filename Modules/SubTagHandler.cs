@@ -24,6 +24,8 @@ namespace Chino_chan.Modules
 
         public bool Identical(SubTag tag) => ContainsIgnoreOrder(tag.Tags, Tags);
 
+        public List<ulong> UserMentions { get; set; } = new List<ulong>();
+
         private bool ContainsIgnoreOrder(List<string> arr1, List<string> arr2)
         {
             for (int i = 0; i < arr1.Count; i++)
@@ -38,6 +40,13 @@ namespace Chino_chan.Modules
         Success = 1,
         AlreadyContains = 2,
         NoImages = 3
+    }
+    public enum ModifyResult
+    {
+        NoSubtagsInChannel = 0,
+        OutOfRange = 1,
+        Removed = 2,
+        Added = 3
     }
     public class SubTagHandler
     {
@@ -106,7 +115,12 @@ namespace Chino_chan.Modules
                             {
                                 PerformSave = true;
                                 string joined_tags = SubTags[i].Tags.Count == 0 ? language.GetEntry("SubTagHandler:NoTag") : string.Join(" ", SubTags[i].Tags);
-                                channel.SendMessageAsync("", embed: new EmbedBuilder()
+                                string mentions = "";
+                                if (SubTags[i].UserMentions.Count != 0)
+                                {
+                                    mentions = string.Join(", ", SubTags[i].UserMentions.Select(t => $"<@{ t }>"));
+                                }
+                                channel.SendMessageAsync(mentions, embed: new EmbedBuilder()
                                 {
                                     Color = Color.Magenta,
                                     Title = language.GetEntry("SubTagHandler:NewImage", "TAGS", joined_tags) + (post.IsAnimated ? "[ANIMATED]" : "") + " - " + post.Filename,
@@ -215,6 +229,26 @@ namespace Chino_chan.Modules
                 return tag;
             }
             return null;
+        }
+
+        public ModifyResult ModifyMentions(ulong ChannelId, int Index, ulong UserId)
+        {
+            if (Tags.ContainsKey(ChannelId))
+            {
+                if (Tags[ChannelId].Count <= Index || Index < 0) return ModifyResult.OutOfRange;
+
+                if (Tags[ChannelId][Index].UserMentions.Contains(UserId))
+                {
+                    Tags[ChannelId][Index].UserMentions.Remove(UserId);
+                    Save();
+                    return ModifyResult.Removed;
+                }
+                Tags[ChannelId][Index].UserMentions.Add(UserId);
+                Save();
+
+                return ModifyResult.Added;
+            }
+            return ModifyResult.NoSubtagsInChannel;
         }
         
         public List<SubTag> ListSubscription(ulong ChannelId)

@@ -439,6 +439,25 @@ namespace Chino_chan.Commands
                 await Context.Channel.SendMessageAsync(GetEntry("Removed", "TAGS", string.Join(" ", tag.Tags)));
             }
         }
+        
+        [Command("submention"), Summary("You'll get mentioned at specific tag posts if you subscribe to them\n\n-\tFirst get subbed tags with `{PREFIX}listsubtag`\n-\tThen use `{PREFIX}submention [Id]` to sub / remove sub from a tag"), ServerCommand]
+        public async Task SubMentionAsync(int Index)
+        {
+            ModifyResult res = Global.SubTagHandler.ModifyMentions(Context.Channel.Id, Index, Context.User.Id);
+            switch (res)
+            {
+                case ModifyResult.NoSubtagsInChannel:
+                case ModifyResult.OutOfRange:
+                    await Context.Channel.SendMessageAsync(GetEntry("NoTags"));
+                    break;
+                case ModifyResult.Added:
+                    await Context.Channel.SendMessageAsync(GetEntry("Added"));
+                    break;
+                case ModifyResult.Removed:
+                    await Context.Channel.SendMessageAsync(GetEntry("Removed"));
+                    break;
+            }
+        }
 
         [Command("nom"), Summary("Nom someones by mentioning them *noms*")]
         public async Task NomAsync(params string[] _)
