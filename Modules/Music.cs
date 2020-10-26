@@ -1,10 +1,11 @@
-﻿using Chino_chan.Models.Music;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
+using Chino_chan.Models.Music;
 using Chino_chan.Models.Settings.Language;
 using Chino_chan.Models.SoundCloud;
 using Discord;
 using Discord.Audio;
 using Discord.Commands;
-using NAudio.Wave;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ using WebSocketSharp;
 using YoutubeExplode;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
+using System.Diagnostics;
 
 namespace Chino_chan.Modules
 {
@@ -53,8 +55,16 @@ namespace Chino_chan.Modules
         [JsonIgnore]
         public AudioOutStream PCMStream { get; private set; }
 
+        
+        /*
         [JsonIgnore]
         public WaveStream Reader { get; private set; }
+        */
+        
+        [JsonIgnore]
+        public FFmpegReader Reader { get; private set; }
+
+
 
         private List<MusicItem> _Queue = new List<MusicItem>();
         public List<MusicItem> Queue
@@ -478,7 +488,7 @@ namespace Chino_chan.Modules
             {
                 if (Reader != null)
                 {
-                    Reader.CurrentTime = span;
+                    Reader.SetTime(span);
                     return true;
                 }
             }
@@ -550,6 +560,12 @@ namespace Chino_chan.Modules
             if (Channel == null)
                 Channel = Context.Channel as ITextChannel;
 
+            if (Context.User.Id != 193356184806227969)
+            {
+                await Channel.SendMessageAsync("Sorry, but the music player is broken, and needs to be fixed! I'm working on it. - ExModify");
+                return;
+            }
+
             string lId = Channel.GetSettings().Language;
 
             LanguageEntry Language = Global.Languages.GetLanguage(lId);
@@ -572,8 +588,6 @@ namespace Chino_chan.Modules
 
             string Url = Current.UrlOrId;
 
-            Container encoding = Container.Mp4;
-
             WebSocket ws = null;
 
             if (Current.IsYouTube)
@@ -586,7 +600,6 @@ namespace Chino_chan.Modules
                 {
                     IStreamInfo info = streamInfos.WithHighestBitrate();
                     Url = info.Url;
-                    encoding = info.Container;
                 }
 
                 if (Url == Current.UrlOrId)
@@ -685,8 +698,12 @@ namespace Chino_chan.Modules
                     return;
                 }
             }
+
+
             try
             {
+                Reader = new FFmpegReader(Url);
+                /*
                 switch (encoding.Name)
                 {
                     case "webm":
@@ -699,9 +716,11 @@ namespace Chino_chan.Modules
                         Reader = new MediaFoundationReader(Url);
                         break;
                 }
+                */
             }
-            catch
+            catch (Exception e)
             {
+                System.Console.WriteLine(e);
                 await Channel.SendMessageAsync(Language.GetEntry("MusicHandler:SongInaccessible", "SONGNAME", Current.Title));
                 if (!IterateIndex(Global.SoundCloud == null))
                 {
@@ -716,31 +735,38 @@ namespace Chino_chan.Modules
                 return;
             }
 
+            System.Console.WriteLine("got reader");
+
             if (PCMStream == null || !PCMStream.CanWrite)
                 PCMStream = Client.CreatePCMStream(AudioApplication.Music, 128 * 1024, 200, 0);
+            System.Console.WriteLine("made pcm stream");
 
-            WaveFormat OutFormat = new WaveFormat(48000, 16, 2);
+            //WaveFormat OutFormat = new WaveFormat(48000, 16, 2);
 
+            
+            /*
             MediaFoundationResampler Resampler = new MediaFoundationResampler(Reader, OutFormat)
             {
                 ResamplerQuality = 60
             };
+            */
 
-            if (SeekTo.HasValue && !Current.IsListenMoe) Reader.CurrentTime = SeekTo.Value;
-
+            //if (SeekTo.HasValue && !Current.IsListenMoe) Reader.CurrentTime = SeekTo.Value;
+            if (SeekTo.HasValue && SeekTo != TimeSpan.Zero && !Current.IsListenMoe) Reader.ReadUntil(SeekTo.Value);
             BackupTime = TimeSpan.Zero;
 
-            int Size = OutFormat.AverageBytesPerSecond / 50;
+            //int Size = OutFormat.AverageBytesPerSecond / 50;
+            int Size = Reader.BufferSize(5);
             byte[] Buffer = new byte[Size];
             int Count = 0;
             
             State = PlayerState.Playing;
             TextChannelId = Channel.Id;
-
-            if (!Current.IsListenMoe)
-                await SendNowPlayingAsync(Context, Channel);
-
-            while (Reader.CanRead && (Count = Resampler.Read(Buffer, 0, Size)) > 0 
+            if (!Current.IsListenMoe) await Context.Channel.SendMessageAsync("unga bunga");
+                //await SendNowPlayingAsync(Context, Channel);
+            /*while (Reader.CanRead && (Count = Resampler.Read(Buffer, 0, Size)) > 0 
+                && Request == PlayerRequest.Idle && State > PlayerState.Connected)*/
+            while (Reader.CanRead && (Count = Reader.Read(Buffer, 0, Size)) > 0 
                 && Request == PlayerRequest.Idle && State > PlayerState.Connected)
             {
                 if (State == PlayerState.Paused)
@@ -820,10 +846,10 @@ namespace Chino_chan.Modules
             if (Request == PlayerRequest.Idle && State > PlayerState.Connected)
                 Request = PlayerRequest.Next;
 
-            Resampler.Dispose();
+            //Resampler.Dispose();
             Reader.Dispose();
             Reader = null;
-            Resampler = null;
+            //Resampler = null;
             try { await PCMStream.FlushAsync(); } catch { } // It may be disposed
             
             if (Request == PlayerRequest.Next)
@@ -1082,6 +1108,6 @@ namespace Chino_chan.Modules
             TextChannelId = 0;
             BackupTime = TimeSpan.Zero;
         }
-
+        
     }
 }

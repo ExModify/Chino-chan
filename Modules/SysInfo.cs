@@ -32,6 +32,7 @@ namespace Chino_chan.Modules
             }
             else
             {
+
                 var CPUKey = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0";
                 Name = (string)Registry.LocalMachine.OpenSubKey(CPUKey).GetValue("ProcessorNameString", "N/A");
                 Speed = Convert.ToInt32(Registry.LocalMachine.OpenSubKey(CPUKey).GetValue("~MHz", 0));
@@ -49,6 +50,7 @@ namespace Chino_chan.Modules
 
         public OsInfo()
         {
+            Version = "N/A";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 RegistryKey sk = Registry.LocalMachine.OpenSubKey("SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion");
@@ -153,7 +155,7 @@ namespace Chino_chan.Modules
                 string[] lines = File.ReadAllLines("/proc/meminfo");
                 foreach (string line in lines)
                 {
-                    if (line.StartsWith("MemFree"))
+                    if (line.StartsWith("MemTotal"))
                     {
                         TotalMemory = Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim());
                     }
