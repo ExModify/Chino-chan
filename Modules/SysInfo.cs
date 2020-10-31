@@ -124,7 +124,7 @@ namespace Chino_chan.Modules
                     string[] lines = File.ReadAllLines("/proc/meminfo");
                     foreach (string line in lines)
                     {
-                        if (line.StartsWith("MemFree"))
+                        if (line.StartsWith("MemAvailable"))
                         {
                             return Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim()) / 1024;
                         }
