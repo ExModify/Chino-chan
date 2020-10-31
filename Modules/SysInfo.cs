@@ -126,7 +126,7 @@ namespace Chino_chan.Modules
                     {
                         if (line.StartsWith("MemFree"))
                         {
-                            return Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim());
+                            return Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim()) / 1024;
                         }
                     }
                     return -1;
@@ -155,7 +155,7 @@ namespace Chino_chan.Modules
                 {
                     if (line.StartsWith("MemTotal"))
                     {
-                        TotalMemory = Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim());
+                        TotalMemory = Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim()) / 1024;
                         break;
                     }
                 }
