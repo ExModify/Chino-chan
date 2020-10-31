@@ -137,16 +137,14 @@ namespace Chino_chan.Modules
 
         public MemInfo()
         {
+            TotalMemory = -1;
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 PerformanceInformation pi = new PerformanceInformation();
                 if (GetPerformanceInfo(out pi, Marshal.SizeOf(pi)))
                 {
                     TotalMemory = Convert.ToInt64((pi.PhysicalTotal.ToInt64() * pi.PageSize.ToInt64() / 1024 / 1024));
-                }
-                else
-                {
-                    TotalMemory = - 1;
                 }
             }
             else
@@ -158,9 +156,9 @@ namespace Chino_chan.Modules
                     if (line.StartsWith("MemTotal"))
                     {
                         TotalMemory = Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim());
+                        break;
                     }
                 }
-                TotalMemory = -1;
             }
         }
     }
