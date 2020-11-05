@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Chino_chan.Models.Settings;
 using System.IO;
+using Chino_chan.Modules;
 
 namespace Chino_chan
 {
@@ -19,6 +20,14 @@ namespace Chino_chan
                 return "Data/GuildSettings.json";
             }
         }
+        private string GuildSettingsBackupPath
+        {
+            get
+            {
+                return "Data/GuildSettingsBackup.json";
+            }
+        }
+        
         
         public Dictionary<ulong, GuildSetting> Settings { get; private set; }
 
@@ -45,28 +54,63 @@ namespace Chino_chan
             {
                 if (File.Exists(GuildSettingsPath))
                 {
+                    if (File.Exists(GuildSettingsBackupPath))
+                        File.Delete(GuildSettingsBackupPath);
+
+                    File.Copy(GuildSettingsPath, GuildSettingsBackupPath);
                     File.Delete(GuildSettingsPath);
                 }
                 if (!Directory.Exists("Data"))
-                {
                     Directory.CreateDirectory("Data");
-                }
+
                 File.WriteAllText(GuildSettingsPath, JsonConvert.SerializeObject(Settings, Formatting.Indented));
             }
             Watcher.EnableRaisingEvents = true;
         }
         private void Load()
         {
+            bool tryBackup = true;
             if (File.Exists(GuildSettingsPath))
             {
-                Settings = JsonConvert.DeserializeObject<Dictionary<ulong, GuildSetting>>(File.ReadAllText(GuildSettingsPath));
-                
-                foreach (KeyValuePair<ulong, GuildSetting> setting in Settings)
+                try
                 {
-                    if (setting.Value.ReactionAssignChannel != 0 && !setting.Value.ReactionAssignChannels.Contains(setting.Value.ReactionAssignChannel))
+                    Settings = JsonConvert.DeserializeObject<Dictionary<ulong, GuildSetting>>(File.ReadAllText(GuildSettingsPath));
+                    
+                    if (Settings.Count != 0)
                     {
-                        Settings[setting.Key].ReactionAssignChannels.Add(setting.Value.ReactionAssignChannel);
+                        tryBackup = false;
+                        
+                        Logger.Log(LogType.Settings, ConsoleColor.Green, "Settings Loader", "Guild settings loaded from normal configuration.");
                     }
+                    else
+                    {
+                        Logger.Log(LogType.Settings, ConsoleColor.Yellow, "Settings Loader", "Empty guild settings configuration file!");
+                    }
+                }
+                catch
+                {
+                    Logger.Log(LogType.Error, ConsoleColor.Red, "Settings Loader", "Faulty settings file! Attempting to load backup file...");
+                }
+            }
+
+            if (tryBackup && File.Exists(GuildSettingsBackupPath))
+            {
+                try
+                {
+                    Settings = JsonConvert.DeserializeObject<Dictionary<ulong, GuildSetting>>(File.ReadAllText(GuildSettingsBackupPath));
+                    Logger.Log(LogType.Settings, ConsoleColor.Yellow, "Settings Loader", "Guild settings loaded from backup configuration!");
+                }
+                catch
+                {
+                    Logger.Log(LogType.Error, ConsoleColor.Red, "Settings Loader", "Faulty backup file! Configuration lost!");
+                }
+            }
+
+            foreach (KeyValuePair<ulong, GuildSetting> setting in Settings)
+            {
+                if (setting.Value.ReactionAssignChannel != 0 && !setting.Value.ReactionAssignChannels.Contains(setting.Value.ReactionAssignChannel))
+                {
+                    Settings[setting.Key].ReactionAssignChannels.Add(setting.Value.ReactionAssignChannel);
                 }
             }
             Save();
