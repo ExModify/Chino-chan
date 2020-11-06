@@ -3,6 +3,7 @@ using System.Threading;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Chino_chan.Modules
 {
@@ -13,13 +14,17 @@ namespace Chino_chan.Modules
         private int BitDepth { get; } = 16;
 
         private Process FFmpegProcess;
-        private StreamReader Reader { get => FFmpegProcess.StandardOutput; }
+        private MemoryStream MemoryStream;
+        private StreamReader FFMpegStreamReader { get => FFmpegProcess.StandardOutput; }
 
         public string URL { get; }
-        //public TimeSpan CurrentTime { get => ToTimeSpan(); }
+        public TimeSpan CurrentTime { get => ToTimeSpan(); }
         public TimeSpan TotalTime { get; }
 
-        public bool CanRead { get => Reader.BaseStream.CanRead; }
+        public bool CanRead { get => FFmpegProcess.StandardOutput.BaseStream.CanRead; }
+        public bool FFMpegRunning { get => !FFmpegProcess.HasExited; }
+
+        public bool Seeking = false;
 
         public FFmpegReader(string Url)
         {
@@ -28,12 +33,25 @@ namespace Chino_chan.Modules
 
             FFmpegProcess = CreateFFmpeg(Url);
 
-            Console.WriteLine(FFmpegProcess.StartInfo.Arguments);
+            MemoryStream = new MemoryStream();
         }
 
         public int Read(byte[] Buffer, int Offset, int Count)
         {
-            return Reader.BaseStream.ReadAsync(Buffer, Offset, Count).Result;
+            while (Seeking) Thread.Sleep(10);
+
+            if (MemoryStream.Length - MemoryStream.Position < Buffer.Length + Offset)
+            {
+                int r = FFmpegProcess.StandardOutput.BaseStream.Read(Buffer, 0, Buffer.Length);
+                if (r != 0)
+                {
+                    MemoryStream.Position = MemoryStream.Length;
+                    MemoryStream.Write(Buffer, 0, r);
+                    return r;
+                }
+            }
+
+            return MemoryStream.ReadAsync(Buffer, Offset, Count).Result;
         }
         public int BufferSize(int Seconds)
         {
@@ -41,17 +59,28 @@ namespace Chino_chan.Modules
         }
         public void SetTime(TimeSpan Time)
         {
-            long length = ToLength(Time);
-            while (Reader.BaseStream.Length < length)
-            {
-                Thread.Sleep(10);
-            }
-
-            Reader.BaseStream.Position = length;
+            Seeking = true;
+            MemoryStream.Position = ReadUntil(Time);
+            Seeking = false;
         }
-        public void ReadUntil(TimeSpan Time)
+        public long ReadUntil(TimeSpan Time)
         {
-
+            byte[] b = new byte[BufferSize(5)];
+            long l = ToLength(Time);
+            while (MemoryStream.Length < l)
+            {
+                int r = FFmpegProcess.StandardOutput.BaseStream.Read(b, 0, b.Length);
+                if (r != 0)
+                {
+                    MemoryStream.Position = MemoryStream.Length;
+                    MemoryStream.Write(b, 0, r);
+                }
+                else
+                {
+                    return l;
+                }
+            }
+            return l;
         }
         private Process CreateFFmpeg(string Url)
         {
@@ -93,12 +122,12 @@ namespace Chino_chan.Modules
         }
         private TimeSpan ToTimeSpan()
         {
-            return TimeSpan.FromSeconds(Reader.BaseStream.Position / (SampleRate *  (BitDepth / 8) * ChannelCount));
+            return TimeSpan.FromSeconds(MemoryStream.Position / (SampleRate *  (BitDepth / 8) * ChannelCount));
         }
 
         public void Dispose()
         {
-            Reader.Dispose();
+            MemoryStream.Dispose();
             if (!FFmpegProcess.HasExited) try { FFmpegProcess.Kill(); } catch { }
             GC.Collect();
         }

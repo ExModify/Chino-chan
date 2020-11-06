@@ -94,7 +94,7 @@ namespace Chino_chan.Modules
         }
 
         public ulong GuildId { get; set; }
-        /*
+        
         [JsonIgnore]
         public TimeSpan CurrentTime
         {
@@ -104,7 +104,7 @@ namespace Chino_chan.Modules
                 else return Reader.CurrentTime;
             }
         }
-        */
+        
 
         public TimeSpan BackupTime { get; set; }
 
@@ -561,12 +561,6 @@ namespace Chino_chan.Modules
             if (Channel == null)
                 Channel = Context.Channel as ITextChannel;
 
-            if (Context.User.Id != 193356184806227969)
-            {
-                await Channel.SendMessageAsync("Sorry, but the music player is broken, and needs to be fixed! I'm working on it. - ExModify");
-                return;
-            }
-
             string lId = Channel.GetSettings().Language;
 
             LanguageEntry Language = Global.Languages.GetLanguage(lId);
@@ -736,11 +730,9 @@ namespace Chino_chan.Modules
                 return;
             }
 
-            System.Console.WriteLine("got reader");
 
             if (PCMStream == null || !PCMStream.CanWrite)
                 PCMStream = Client.CreatePCMStream(AudioApplication.Music, 128 * 1024, 200, 0);
-            System.Console.WriteLine("made pcm stream");
 
             //WaveFormat OutFormat = new WaveFormat(48000, 16, 2);
 
@@ -757,17 +749,17 @@ namespace Chino_chan.Modules
             BackupTime = TimeSpan.Zero;
 
             //int Size = OutFormat.AverageBytesPerSecond / 50;
-            int Size = Reader.BufferSize(5);
+            int Size = Reader.BufferSize(1);
             byte[] Buffer = new byte[Size];
             int Count = 0;
             
             State = PlayerState.Playing;
             TextChannelId = Channel.Id;
-            if (!Current.IsListenMoe) await Context.Channel.SendMessageAsync("unga bunga");
-                //await SendNowPlayingAsync(Context, Channel);
+            if (!Current.IsListenMoe)
+                await SendNowPlayingAsync(Context, Channel);
             /*while (Reader.CanRead && (Count = Resampler.Read(Buffer, 0, Size)) > 0 
                 && Request == PlayerRequest.Idle && State > PlayerState.Connected)*/
-            while (Reader.CanRead && (Count = Reader.Read(Buffer, 0, Size)) > 0 
+            while (Reader.CanRead && (Count = Reader.Read(Buffer, 0, Size)) > 0
                 && Request == PlayerRequest.Idle && State > PlayerState.Connected)
             {
                 if (State == PlayerState.Paused)
@@ -806,13 +798,13 @@ namespace Chino_chan.Modules
                 {
                     break;
                 }
-                /*
+                
                 if (CurrentTime.TotalSeconds % 10 == 0 && BackupTime.TotalSeconds != CurrentTime.TotalSeconds)
                 {
                     PropertyChanged?.Invoke();
                     BackupTime = CurrentTime;
                 }
-                */
+                
                 try
                 {
                     if (State < PlayerState.Playing)
@@ -943,10 +935,8 @@ namespace Chino_chan.Modules
             }
             else
             {
-                //Final = CreateMusicEmbed(Language.GetEntry("MusicHandler:NowPlaying"), Language, Current.Title,
-                //        Current.Duration, Current.IsListenMoe ? Current.PublicUrl.Replace("fallback", "") : Current.PublicUrl, Current.Author, Current.IsListenMoe ? ListenMoeCurrentTime : CurrentTime, Current.Thumbnail);
                 Final = CreateMusicEmbed(Language.GetEntry("MusicHandler:NowPlaying"), Language, Current.Title,
-                        Current.Duration, Current.IsListenMoe ? Current.PublicUrl.Replace("fallback", "") : Current.PublicUrl, Current.Author, Current.IsListenMoe ? ListenMoeCurrentTime : TimeSpan.Zero, Current.Thumbnail);
+                        Current.Duration, Current.IsListenMoe ? Current.PublicUrl.Replace("fallback", "") : Current.PublicUrl, Current.Author, Current.IsListenMoe ? ListenMoeCurrentTime : CurrentTime, Current.Thumbnail);
             }
 
             await Channel.SendMessageAsync("", embed: Final);
