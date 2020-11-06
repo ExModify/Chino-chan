@@ -16,7 +16,7 @@ namespace Chino_chan.Modules
         private StreamReader Reader { get => FFmpegProcess.StandardOutput; }
 
         public string URL { get; }
-        public TimeSpan CurrentTime { get => ToTimeSpan(); }
+        //public TimeSpan CurrentTime { get => ToTimeSpan(); }
         public TimeSpan TotalTime { get; }
 
         public bool CanRead { get => Reader.BaseStream.CanRead; }

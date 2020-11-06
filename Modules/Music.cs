@@ -94,7 +94,7 @@ namespace Chino_chan.Modules
         }
 
         public ulong GuildId { get; set; }
-
+        /*
         [JsonIgnore]
         public TimeSpan CurrentTime
         {
@@ -104,6 +104,7 @@ namespace Chino_chan.Modules
                 else return Reader.CurrentTime;
             }
         }
+        */
 
         public TimeSpan BackupTime { get; set; }
 
@@ -805,13 +806,13 @@ namespace Chino_chan.Modules
                 {
                     break;
                 }
-                
+                /*
                 if (CurrentTime.TotalSeconds % 10 == 0 && BackupTime.TotalSeconds != CurrentTime.TotalSeconds)
                 {
                     PropertyChanged?.Invoke();
                     BackupTime = CurrentTime;
                 }
-
+                */
                 try
                 {
                     if (State < PlayerState.Playing)
@@ -942,9 +943,10 @@ namespace Chino_chan.Modules
             }
             else
             {
+                //Final = CreateMusicEmbed(Language.GetEntry("MusicHandler:NowPlaying"), Language, Current.Title,
+                //        Current.Duration, Current.IsListenMoe ? Current.PublicUrl.Replace("fallback", "") : Current.PublicUrl, Current.Author, Current.IsListenMoe ? ListenMoeCurrentTime : CurrentTime, Current.Thumbnail);
                 Final = CreateMusicEmbed(Language.GetEntry("MusicHandler:NowPlaying"), Language, Current.Title,
-                        Current.Duration, Current.IsListenMoe ? Current.PublicUrl.Replace("fallback", "") : Current.PublicUrl, Current.Author, Current.IsListenMoe ? ListenMoeCurrentTime : CurrentTime, Current.Thumbnail);
-
+                        Current.Duration, Current.IsListenMoe ? Current.PublicUrl.Replace("fallback", "") : Current.PublicUrl, Current.Author, Current.IsListenMoe ? ListenMoeCurrentTime : TimeSpan.Zero, Current.Thumbnail);
             }
 
             await Channel.SendMessageAsync("", embed: Final);
