@@ -762,6 +762,12 @@ namespace Chino_chan.Commands
             await Context.Channel.SendMessageAsync("", embed: builder.Build());
         }
 
+        [Command("roll"), Alias("rng", "random"), Summary("Random number")]
+        public async Task RollAsync(int min = 0, int max = 100)
+        {
+            await ReplyAsync("" + Global.Random.Next(min, max));
+        }
+
         [Command("slap"), Summary("Slaps someones by mentioning them")]
         public async Task SlapAsync(params string[] _)
         {
