@@ -798,6 +798,8 @@ namespace Chino_chan
             #region Join
             Client.UserJoined += async (User) =>
             {
+                await Client.GetGuild(341882520310251520).GetTextChannel(514916763109031948).SendMessageAsync("user joined");
+
                 GuildSetting Settings = User.Guild.GetSettings();
 
                 if (Settings.NewMemberRoles.Count > 0)
