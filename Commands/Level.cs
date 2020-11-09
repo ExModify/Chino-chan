@@ -73,8 +73,6 @@ namespace Chino_chan.Commands
             }
             else
             {
-                var GuildUsers = (await Context.Guild.GetUsersAsync()).Where(t => !t.IsBot).Select(t => t.Id);
-                
                 List<Leveling.User> Users = new List<Leveling.User>();
                 foreach (KeyValuePair<ulong, Leveling.User> User in Global.Level.Users)
                 {
