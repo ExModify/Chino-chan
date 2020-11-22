@@ -587,14 +587,22 @@ namespace Chino_chan.Modules
 
             if (Current.IsYouTube)
             {
+                await Context.Channel.SendMessageAsync("Fetching video from youtube...");
                 YoutubeClient Client = new YoutubeClient();
                 StreamManifest sm = await Client.Videos.Streams.GetManifestAsync(Current.UrlOrId);
+                await Context.Channel.SendMessageAsync("Got manifest! Getting audio streams...");
                 IEnumerable<IAudioStreamInfo> streamInfos = sm.GetAudio();
                 
+                await Context.Channel.SendMessageAsync("Got audio streams!");
                 if (streamInfos.Count() > 0)
                 {
                     IStreamInfo info = streamInfos.WithHighestBitrate();
+                    await Context.Channel.SendMessageAsync("Best bitrate selected");
                     Url = info.Url;
+                }
+                else
+                {
+                    await Context.Channel.SendMessageAsync("No audio stream was found!");
                 }
 
                 if (Url == Current.UrlOrId)
@@ -694,7 +702,7 @@ namespace Chino_chan.Modules
                 }
             }
 
-
+            await Context.Channel.SendMessageAsync("Initializing ffmpeg...");
             try
             {
                 Reader = new FFmpegReader(Url);
@@ -729,7 +737,7 @@ namespace Chino_chan.Modules
                 }
                 return;
             }
-
+            await Context.Channel.SendMessageAsync("ffmpeg initialized!");
 
             if (PCMStream == null || !PCMStream.CanWrite)
                 PCMStream = Client.CreatePCMStream(AudioApplication.Music, 128 * 1024, 200, 0);
