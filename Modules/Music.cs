@@ -589,7 +589,7 @@ namespace Chino_chan.Modules
             {
                 await Context.Channel.SendMessageAsync("Fetching video from youtube...");
                 YoutubeClient Client = new YoutubeClient();
-                StreamManifest sm = await Client.Videos.Streams.GetManifestAsync(Current.UrlOrId);
+                StreamManifest sm = await Client.Videos.Streams.GetManifestAsync(VideoId.TryParse(Current.UrlOrId).Value);
                 await Context.Channel.SendMessageAsync("Got manifest! Getting audio streams...");
                 IEnumerable<IAudioStreamInfo> streamInfos = sm.GetAudio();
                 
