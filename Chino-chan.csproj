@@ -8,7 +8,7 @@
   <ItemGroup>
     <PackageReference Include="Discord.NET" Version="2.3.0-dev-20201028.4"/>
     <PackageReference Include="osuBeatmapUtilities_ExModify" Version="1.0.0"/>
-    <PackageReference Include="YoutubeExplode" Version="5.1.8"/>
+    <PackageReference Include="YoutubeExplode" Version="5.1.7"/>
     <PackageReference Include="Troschuetz.Random" Version="4.3.1"/>
     <PackageReference Include="TwitchLib" Version="3.1.1"/>
     <PackageReference Include="System.Drawing.Common" Version="4.7.0"/>
