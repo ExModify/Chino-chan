@@ -445,12 +445,17 @@ namespace Chino_chan.Commands
                 User = Context.User;
             }
 
+            string name = User.Username;
+
+            if (User is IGuildUser usr && usr.Nickname != null)
+                name += $" ({ usr.Nickname })";
+
             EmbedBuilder Builder = new EmbedBuilder()
             {
                 Color = Global.Pink,
                 Author = new EmbedAuthorBuilder()
                 {
-                    Name = GetEntry("InfoAbout", "U", User.Username),
+                    Name = GetEntry("InfoAbout", "U", name),
                     IconUrl = User.GetAvatarUrl() ?? User.GetDefaultAvatarUrl(),
                     Url = User.GetAvatarUrl(size: 2048) ?? User.GetDefaultAvatarUrl()
                 },
@@ -459,12 +464,12 @@ namespace Chino_chan.Commands
 
             Builder.ThumbnailUrl = Builder.Author.Url;
 
-            Builder.AddField(GetEntry("UserInfo"), User.Username + "#" + User.Discriminator + "\n" + GetEntry("UserId") + User.Id, true);
-
-            Builder.AddField(GetEntry("UserCreated"), User.CreatedAt.ToString(), true);
+            Builder.AddField(GetEntry("UserInfo"), User.Username + "#" + User.Discriminator, true);
+            Builder.AddField(GetEntry("UserId"), User.Id, true);
+            Builder.AddField(GetEntry("UserCreated"), User.CreatedAt.ToString(), false);
             if (User is IGuildUser GuildUser)
             {
-                Builder.AddField(GetEntry("JoinedAt"), GuildUser.JoinedAt.ToString(), true);
+                Builder.AddField(GetEntry("JoinedAt"), GuildUser.JoinedAt.ToString(), false);
                 Builder.AddField(GetEntry("Nickname"), GuildUser.Nickname ?? GetEntry("NoNickname"), true);
                 string roleText = string.Join(", ", GuildUser.RoleIds.Where(t => t != Context.Guild.EveryoneRole.Id).Select(t => Context.Guild.GetRole(t).Name));
                 if (string.IsNullOrWhiteSpace(roleText))
