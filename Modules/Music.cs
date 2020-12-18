@@ -587,22 +587,29 @@ namespace Chino_chan.Modules
 
             if (Current.IsYouTube)
             {
-                await Context.Channel.SendMessageAsync("Fetching video from youtube...");
                 YoutubeClient Client = new YoutubeClient();
-                StreamManifest sm = await Client.Videos.Streams.GetManifestAsync(VideoId.TryParse(Current.UrlOrId).Value);
-                await Context.Channel.SendMessageAsync("Got manifest! Getting audio streams...");
-                IEnumerable<IAudioStreamInfo> streamInfos = sm.GetAudio();
-                
-                await Context.Channel.SendMessageAsync("Got audio streams!");
-                if (streamInfos.Count() > 0)
+                StreamManifest sm = null;
+                try
                 {
-                    IStreamInfo info = streamInfos.WithHighestBitrate();
-                    await Context.Channel.SendMessageAsync("Best bitrate selected");
-                    Url = info.Url;
+                    sm = await Client.Videos.Streams.GetManifestAsync(VideoId.TryParse(Current.UrlOrId).Value);
                 }
-                else
+                catch (Exception e)
                 {
-                    await Context.Channel.SendMessageAsync("No audio stream was found!");
+                    File.WriteAllText("tempexceptionfrommusicplayer.json", JsonConvert.SerializeObject(e, Formatting.Indented));
+                    
+                    await Global.Client.GetGuild(Global.Settings.DevServer.Id)
+                        .GetTextChannel(Global.Settings.DevServer.ErrorReportChannelId).SendFileAsync("tempexceptionfrommusicplayer.json", "");
+                    File.Delete("tempexceptionfrommusicplayer.json");
+                }
+                if (sm != null)
+                {
+                    IEnumerable<IAudioStreamInfo> streamInfos = sm.GetAudio();
+                    
+                    if (streamInfos.Count() > 0)
+                    {
+                        IStreamInfo info = streamInfos.WithHighestBitrate();
+                        Url = info.Url;
+                    }
                 }
 
                 if (Url == Current.UrlOrId)
