@@ -461,12 +461,6 @@ namespace Chino_chan.Commands
 
             Builder.AddField(GetEntry("UserInfo"), User.Username + "#" + User.Discriminator + "\n" + GetEntry("UserId") + User.Id, true);
 
-            string Activity = GetEntry("Inactive");
-            if (User.Activity != null)
-                Activity = User.Activity.Type.ToString() + " " + User.Activity.Name;
-
-            Builder.AddField(GetEntry("Activity"), Activity, true);
-            Builder.AddField(GetEntry("Status"), User.Status.ToString(), true);
             Builder.AddField(GetEntry("UserCreated"), User.CreatedAt.ToString(), true);
             if (User is IGuildUser GuildUser)
             {
@@ -479,8 +473,6 @@ namespace Chino_chan.Commands
                 }
                 Builder.AddField(GetEntry("Roles"), roleText, true);
             }
-            Builder.AddField(GetEntry("IsBot"), User.IsBot, true);
-            Builder.AddField(GetEntry("FromWebhook"), User.IsWebhook, true);
 
             await Context.Channel.SendMessageAsync("", embed: Builder.Build());
         }
