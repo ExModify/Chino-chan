@@ -709,7 +709,6 @@ namespace Chino_chan.Modules
                 }
             }
 
-            await Context.Channel.SendMessageAsync("Initializing ffmpeg...");
             try
             {
                 Reader = new FFmpegReader(Url);
@@ -744,7 +743,6 @@ namespace Chino_chan.Modules
                 }
                 return;
             }
-            await Context.Channel.SendMessageAsync("ffmpeg initialized!");
 
             if (PCMStream == null || !PCMStream.CanWrite)
                 PCMStream = Client.CreatePCMStream(AudioApplication.Music, 128 * 1024, 200, 0);
