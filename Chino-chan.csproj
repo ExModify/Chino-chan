@@ -6,7 +6,7 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.NET" Version="2.3.0-dev-20201028.4"/>
+    <PackageReference Include="Discord.NET" Version="2.3.0-dev-20201223.7"/>
     <PackageReference Include="osuBeatmapUtilities_ExModify" Version="1.0.0"/>
     <PackageReference Include="YoutubeExplode" Version="5.1.9"/>
     <PackageReference Include="Troschuetz.Random" Version="4.3.1"/>
