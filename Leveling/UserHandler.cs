@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Chino_chan.Modules;
+using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Chino_chan.Leveling
     {
         string Filename { get; set; }
 
-        public UserHandler(LevelSystem Level, string Filename = "Data/Users.json")
+        public UserHandler(LevelSystem Level, string Filename = "Users")
         {
             this.Filename = Filename;
 
@@ -25,26 +26,22 @@ namespace Chino_chan.Leveling
         
         uint Load()
         {
-            if (File.Exists(Filename))
+            Dictionary<ulong, User> Users = SaveManager.LoadSettings<Dictionary<ulong, User>>(Filename);
+
+            if (Users != null)
             {
-                try
+                uint XP = 0;
+
+                foreach (KeyValuePair<ulong, User> User in Users)
                 {
-                    Dictionary<ulong, User> Users = JsonConvert.DeserializeObject<Dictionary<ulong, User>>(File.ReadAllText(Filename));
+                    foreach (KeyValuePair<ulong, uint> GuildXP in User.Value.GuildXps)
+                        if (GuildXP.Value > XP)
+                            XP = GuildXP.Value;
 
-                    uint XP = 0;
-                    
-                    foreach (KeyValuePair<ulong, User> User in Users)
-                    {
-                        foreach (KeyValuePair<ulong, uint> GuildXP in User.Value.GuildXps)
-                            if (GuildXP.Value > XP)
-                                XP = GuildXP.Value;
-
-                        Add(User.Key, User.Value);
-                    }
-
-                    return XP;
+                    Add(User.Key, User.Value);
                 }
-                catch { } // Probably RIP Json
+
+                return XP;
             }
 
             Save();
@@ -54,8 +51,7 @@ namespace Chino_chan.Leveling
 
         void Save()
         {
-            File.Delete(Filename);
-            File.WriteAllText(Filename, JsonConvert.SerializeObject(this, Formatting.Indented));
+            SaveManager.SaveData(Filename, this);
         }
 
         public void RecalculateLevels(LevelSystem Level)

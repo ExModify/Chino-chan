@@ -67,11 +67,10 @@ namespace Chino_chan.Modules
         #endregion
 
         #region CacheFiles
-        public const string Folder = "Data/osu/";
-        public string RankedBeatmapCachePath = Folder + "RankedBeatmapCache.json";
-        public string UserCachePath          = Folder + "UserCache.json";
-        public string UserNameIdCachePath    = Folder + "UserNameIdCache.json";
-        public string LastMapCachePath       = Folder + "LastMapCache.json";
+        public string RankedBeatmapCachePath = "RankedBeatmapCache";
+        public string UserCachePath          = "UserCache";
+        public string UserNameIdCachePath    = "UserNameIdCache";
+        public string LastMapCachePath       = "LastMapCache";
         #endregion
 
         public event Action<int> OnResetBegin;
@@ -128,19 +127,19 @@ namespace Chino_chan.Modules
 
             if (File.Exists(RankedBeatmapCachePath))
             {
-                RankedBeatmapCache = JsonConvert.DeserializeObject<Dictionary<int, Beatmap>>(File.ReadAllText(RankedBeatmapCachePath));
+                RankedBeatmapCache = SaveManager.LoadSettings<Dictionary<int, Beatmap>>(RankedBeatmapCachePath);
             }
             if (File.Exists(UserCachePath))
             {
-                UserCache = JsonConvert.DeserializeObject<Dictionary<int, User>>(File.ReadAllText(UserCachePath));
+                UserCache = SaveManager.LoadSettings<Dictionary<int, User>>(UserCachePath);
             }
             if (File.Exists(UserNameIdCachePath))
             {
-                UserNameIdCache = JsonConvert.DeserializeObject<Dictionary<string, int>>(File.ReadAllText(UserNameIdCachePath));
+                UserNameIdCache = SaveManager.LoadSettings<Dictionary<string, int>>(UserNameIdCachePath);
             }
             if (File.Exists(LastMapCachePath))
             {
-                LastMapCache = JsonConvert.DeserializeObject<Dictionary<ulong, List<int>>>(File.ReadAllText(LastMapCachePath));
+                LastMapCache = SaveManager.LoadSettings<Dictionary<ulong, List<int>>>(LastMapCachePath);
             }
 
             ResetTimer = new Timer(60000)
@@ -442,14 +441,7 @@ namespace Chino_chan.Modules
 
         public void Save(object Object, string Path)
         {
-            if (!Directory.Exists("Data/osu"))
-            {
-                if (!Directory.Exists("Data"))
-                    Directory.CreateDirectory("Data");
-
-                Directory.CreateDirectory("Data/osu");
-            }
-            File.WriteAllText(Path, JsonConvert.SerializeObject(Object, Formatting.Indented));
+            SaveManager.SaveData(Path, Object);
         }
     }
     public enum Mode

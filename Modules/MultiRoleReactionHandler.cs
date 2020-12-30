@@ -82,7 +82,7 @@ namespace Chino_chan.Modules
     }
     public class MultiRoleReactionHandler
     {
-        private readonly string Filename = "Data/MultiRoleDatabase.json";
+        private readonly string Filename = "MultiRoleDatabase";
         private readonly Regex RoleRegex;
 
         public List<MultiRoleEntry> Entries { get; private set; }
@@ -96,7 +96,7 @@ namespace Chino_chan.Modules
 
             if (File.Exists(Filename))
             {
-                Entries.AddRange(JsonConvert.DeserializeObject<MultiRoleEntry[]>(File.ReadAllText(Filename)));
+                Entries.AddRange(SaveManager.LoadSettings<MultiRoleEntry[]>(Filename));
             }
 
             Client.MessageReceived += discordMessageReceived;
@@ -132,7 +132,7 @@ namespace Chino_chan.Modules
 
         public void Save()
         {
-            File.WriteAllText(Filename, JsonConvert.SerializeObject(Entries, Formatting.Indented));
+            SaveManager.SaveData(Filename, Entries);
         }
 
         private Task leftGuild(SocketGuild arg)

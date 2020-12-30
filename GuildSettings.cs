@@ -12,21 +12,7 @@ namespace Chino_chan
 {
     public class GuildSettings
     {
-        private readonly object SaveLock = new object();
-        private string GuildSettingsPath
-        {
-            get
-            {
-                return "Data/GuildSettings.json";
-            }
-        }
-        private string GuildSettingsBackupPath
-        {
-            get
-            {
-                return "Data/GuildSettingsBackup.json";
-            }
-        }
+        private string GuildSettingsPath = "GuildSettings";
         
         
         public Dictionary<ulong, GuildSetting> Settings { get; private set; }
@@ -41,7 +27,7 @@ namespace Chino_chan
             Watcher.Changed += (sender, args) =>
             {
                 Watcher.EnableRaisingEvents = false;
-                Settings = JsonConvert.DeserializeObject<Dictionary<ulong, GuildSetting>>(File.ReadAllText(GuildSettingsPath));
+                Settings = SaveManager.LoadSettings<Dictionary<ulong, GuildSetting>>(GuildSettingsPath);
                 Watcher.EnableRaisingEvents = true;
             };
             Load();
@@ -50,36 +36,19 @@ namespace Chino_chan
         public void Save()
         {
             Watcher.EnableRaisingEvents = false;
-            lock(SaveLock)
-            {
-                if (File.Exists(GuildSettingsPath))
-                {
-                    if (File.Exists(GuildSettingsBackupPath))
-                        File.Delete(GuildSettingsBackupPath);
-
-                    File.Copy(GuildSettingsPath, GuildSettingsBackupPath);
-                    File.Delete(GuildSettingsPath);
-                }
-                if (!Directory.Exists("Data"))
-                    Directory.CreateDirectory("Data");
-
-                File.WriteAllText(GuildSettingsPath, JsonConvert.SerializeObject(Settings, Formatting.Indented));
-            }
+            SaveManager.SaveData(GuildSettingsPath, Settings);
             Watcher.EnableRaisingEvents = true;
         }
         private void Load()
         {
-            bool tryBackup = true;
             if (File.Exists(GuildSettingsPath))
             {
                 try
                 {
-                    Settings = JsonConvert.DeserializeObject<Dictionary<ulong, GuildSetting>>(File.ReadAllText(GuildSettingsPath));
+                    Settings = SaveManager.LoadSettings<Dictionary<ulong, GuildSetting>>(GuildSettingsPath);
                     
                     if (Settings.Count != 0)
                     {
-                        tryBackup = false;
-                        
                         Logger.Log(LogType.Settings, ConsoleColor.Green, "Settings Loader", "Guild settings loaded from normal configuration.");
                     }
                     else
@@ -92,20 +61,6 @@ namespace Chino_chan
                     Logger.Log(LogType.Error, ConsoleColor.Red, "Settings Loader", "Faulty settings file! Attempting to load backup file...");
                 }
             }
-
-            if (tryBackup && File.Exists(GuildSettingsBackupPath))
-            {
-                try
-                {
-                    Settings = JsonConvert.DeserializeObject<Dictionary<ulong, GuildSetting>>(File.ReadAllText(GuildSettingsBackupPath));
-                    Logger.Log(LogType.Settings, ConsoleColor.Yellow, "Settings Loader", "Guild settings loaded from backup configuration!");
-                }
-                catch
-                {
-                    Logger.Log(LogType.Error, ConsoleColor.Red, "Settings Loader", "Faulty backup file! Configuration lost!");
-                }
-            }
-
             foreach (KeyValuePair<ulong, GuildSetting> setting in Settings)
             {
                 if (setting.Value.ReactionAssignChannel != 0 && !setting.Value.ReactionAssignChannels.Contains(setting.Value.ReactionAssignChannel))

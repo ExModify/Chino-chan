@@ -60,7 +60,7 @@ namespace Chino_chan.Modules
             {
                 if (File.Exists("Data/TwitchTracking.json"))
                 {
-                    TwitchLocal obj = JsonConvert.DeserializeObject<TwitchLocal>(File.ReadAllText("Data/TwitchTracking.json"));
+                    TwitchLocal obj = SaveManager.LoadSettings<TwitchLocal>("TwitchTracking");
 
                     Online.AddRange(obj.Online);
                     Offline.AddRange(obj.Offline);
@@ -125,11 +125,11 @@ namespace Chino_chan.Modules
                     }
                 }
 
-                File.WriteAllText("Data/TwitchTracking.json", JsonConvert.SerializeObject(new TwitchLocal()
+                SaveManager.SaveData("TwitchTracking", new TwitchLocal()
                 {
                     Online = Online,
                     Offline = Offline
-                }));
+                });
             };
 
             UserDatabaseUpdater.Elapsed += (s, a) =>

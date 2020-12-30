@@ -58,7 +58,7 @@ namespace Chino_chan.Modules
         {
             if (File.Exists("Data/SubTags.json"))
             {
-                Tags = JsonConvert.DeserializeObject<Dictionary<ulong, List<SubTag>>>(File.ReadAllText("Data/SubTags.json"));
+                Tags = SaveManager.LoadSettings<Dictionary<ulong, List<SubTag>>>("SubTags");
             }
             else
             {
@@ -177,7 +177,7 @@ namespace Chino_chan.Modules
 
         public void Save()
         {
-            File.WriteAllText("Data/SubTags.json", JsonConvert.SerializeObject(Tags, Formatting.Indented));
+            SaveManager.SaveData("SubTags", Tags);
         }
         
         public AddResult Add(ulong ChannelId, List<string> Tags)

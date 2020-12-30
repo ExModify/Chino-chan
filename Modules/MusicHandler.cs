@@ -58,7 +58,7 @@ namespace Chino_chan.Modules
             if (File.Exists("Data/Music.json"))
             {
                 Logger.Log(LogType.Music, ConsoleColor.Cyan, null, "Loading saved clients...");
-                Clients = JsonConvert.DeserializeObject<Dictionary<ulong, MusicPlayer>>(File.ReadAllText("Data/Music.json"));
+                Clients = SaveManager.LoadSettings<Dictionary<ulong, MusicPlayer>>("Music");
             }
             else
             {
@@ -190,18 +190,7 @@ namespace Chino_chan.Modules
 
         private void QueueSave()
         {
-            if (!SaveDelay)
-            {
-                SaveDelay = true;
-
-                Task.Run(() =>
-                {
-                    Task.Delay(1000);
-                    SaveDelay = false;
-
-                    File.WriteAllText("Data/Music.json", JsonConvert.SerializeObject(Clients, Formatting.Indented));
-                });
-            }
+            SaveManager.SaveData("Music", Clients);
         }
     }
 }

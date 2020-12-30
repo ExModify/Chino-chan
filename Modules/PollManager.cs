@@ -13,7 +13,7 @@ namespace Chino_chan.Modules
 {
     public class PollManager
     {
-        private string Filename { get; set; } = "Data/Polls.json";
+        private string Filename { get; set; } = "Polls";
 
         Dictionary<ulong, List<Poll>> Polls { get; set; }
         Dictionary<ulong, List<PollIdentifier>> PollMessageIds { get; set; }
@@ -215,8 +215,7 @@ namespace Chino_chan.Modules
         {
             if (File.Exists(Filename))
             {
-                string content = File.ReadAllText(Filename);
-                Polls = JsonConvert.DeserializeObject<Dictionary<ulong, List<Poll>>>(content);
+                Polls = SaveManager.LoadSettings<Dictionary<ulong, List<Poll>>>(Filename);
                 
                 int active = ActivePolls();
                 if (active != 0)
@@ -236,17 +235,7 @@ namespace Chino_chan.Modules
 
         private void SavePolls()
         {
-            if (IsSaving)
-                return;
-
-            IsSaving = true;
-
-            Task.Run(() =>
-            {
-                File.WriteAllText(Filename, JsonConvert.SerializeObject(Polls));
-                Task.Delay(5000);
-                IsSaving = false;
-            });
+            SaveManager.SaveData(Filename, Polls);
         }
         private void StartPolls()
         {

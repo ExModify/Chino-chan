@@ -19,7 +19,7 @@ namespace Chino_chan.Modules
 
         readonly osuApi API;
         readonly List<osuTrackUser> Track;
-        readonly string Filename = "Data/osuTrack.json";
+        readonly string Filename = "osuTrack";
 
         public event Action<osuTrackUser, byte, byte, byte, RecentScore, User, float> OnNewScore;
 
@@ -34,7 +34,7 @@ namespace Chino_chan.Modules
             
             if (File.Exists(Filename))
             {
-                Track = JsonConvert.DeserializeObject<List<osuTrackUser>>(File.ReadAllText(Filename));
+                Track = SaveManager.LoadSettings<List<osuTrackUser>>(Filename);
             }
             else
             {
@@ -208,7 +208,7 @@ namespace Chino_chan.Modules
 
         void Save()
         {
-            File.WriteAllText(Filename, JsonConvert.SerializeObject(Track, Formatting.Indented));
+            SaveManager.SaveData(Filename, Track);
         }
     }
 }

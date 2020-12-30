@@ -32,14 +32,7 @@ namespace Chino_chan
     public static class Global
     {
         #region Variables
-        private static bool Saving = false;
-        private static string SettingsPath
-        {
-            get
-            {
-                return "Data/Settings.json";
-            }
-        }
+        private static string SettingsPath = "Settings";
         private static TimeSpan StartedTime;
 
         public static Color Pink { get; } = new Color(255, 168, 235);
@@ -1260,20 +1253,12 @@ namespace Chino_chan
         #region Settings
         private static void LoadSettings()
         {
-            if (File.Exists(SettingsPath))
-            {
-                Settings = JsonConvert.DeserializeObject<Settings>(File.ReadAllText(SettingsPath));
-
-                if (Settings == null)
-                    Settings = new Settings();
-
-                Logger.Log(LogType.Settings, ConsoleColor.Cyan, null, "Settings read, checking..");
-            }
-            else
-            {
+            Settings = SaveManager.LoadSettings<Settings>(SettingsPath);
+            
+            if (Settings == null)
                 Settings = new Settings();
-                SaveSettings();
-            }
+
+            SaveManager.SaveData(SettingsPath, Settings);
 
             var HasToQuit = false;
 
@@ -1309,25 +1294,7 @@ namespace Chino_chan
         }
         public static void SaveSettings()
         {
-            while (Saving) Thread.Sleep(100);
-            Saving = true;
-            Attempt:
-            if (!Directory.Exists("Data"))
-            {
-                Directory.CreateDirectory("Data");
-            }
-
-            try
-            {
-                File.WriteAllText(SettingsPath, JsonConvert.SerializeObject(Settings, Formatting.Indented));
-            }
-            catch
-            {
-                Logger.Log(LogType.Error, ConsoleColor.Red, "Settings", "Failed to save settings! Attempting to save after 1 second...");
-                Thread.Sleep(1000);
-                goto Attempt;
-            }
-            Saving = false;
+            SaveManager.SaveData(SettingsPath, Settings);
         }
         #endregion
         #region Utilities
