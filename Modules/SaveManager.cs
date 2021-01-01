@@ -21,9 +21,10 @@ namespace Chino_chan.Modules
                 data = JsonConvert.DeserializeObject<T>(File.ReadAllText(originalFile));
                 Logger.Log(LogType.Settings, ConsoleColor.Green, null, $"{ fileName }.json was successfully loaded!");
             }
-            catch
+            catch (Exception e)
             {
                 Logger.Log(LogType.Settings, ConsoleColor.Red, "Error", $"There was an error loading { fileName }.json! Loading backup file...");
+                Logger.Log(LogType.Settings, ConsoleColor.Red, "Error", JsonConvert.SerializeObject(e, Formatting.Indented));
                 string backupFile = BackupFolder + fileName + ".backup.json";
                 if (File.Exists(backupFile))
                 {
