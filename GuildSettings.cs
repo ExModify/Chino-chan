@@ -41,26 +41,17 @@ namespace Chino_chan
         }
         private void Load()
         {
-            if (File.Exists(GuildSettingsPath))
+            Settings = SaveManager.LoadSettings<Dictionary<ulong, GuildSetting>>(GuildSettingsPath);
+
+            if (Settings.Count != 0)
             {
-                try
-                {
-                    Settings = SaveManager.LoadSettings<Dictionary<ulong, GuildSetting>>(GuildSettingsPath);
-                    
-                    if (Settings.Count != 0)
-                    {
-                        Logger.Log(LogType.Settings, ConsoleColor.Green, "Settings Loader", "Guild settings loaded from normal configuration.");
-                    }
-                    else
-                    {
-                        Logger.Log(LogType.Settings, ConsoleColor.Yellow, "Settings Loader", "Empty guild settings configuration file!");
-                    }
-                }
-                catch
-                {
-                    Logger.Log(LogType.Error, ConsoleColor.Red, "Settings Loader", "Faulty settings file! Attempting to load backup file...");
-                }
+                Logger.Log(LogType.Settings, ConsoleColor.Green, "Settings Loader", "Guild settings loaded from normal configuration.");
             }
+            else
+            {
+                Logger.Log(LogType.Settings, ConsoleColor.Yellow, "Settings Loader", "Empty guild settings configuration file!");
+            }
+
             foreach (KeyValuePair<ulong, GuildSetting> setting in Settings)
             {
                 if (setting.Value.ReactionAssignChannel != 0 && !setting.Value.ReactionAssignChannels.Contains(setting.Value.ReactionAssignChannel))
