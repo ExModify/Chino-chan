@@ -32,14 +32,7 @@ namespace Chino_chan.Modules
             }
             this.API = API;
             
-            if (File.Exists(Filename))
-            {
-                Track = SaveManager.LoadSettings<List<osuTrackUser>>(Filename);
-            }
-            else
-            {
-                Track = new List<osuTrackUser>();
-            }
+            Track = SaveManager.LoadSettings<List<osuTrackUser>>(Filename);
 
             Task.Run(Check);
         }

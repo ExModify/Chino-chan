@@ -125,22 +125,10 @@ namespace Chino_chan.Modules
             UserNameIdCache = new Dictionary<string, int>();
             LastMapCache = new Dictionary<ulong, List<int>>();
 
-            if (File.Exists(RankedBeatmapCachePath))
-            {
-                RankedBeatmapCache = SaveManager.LoadSettings<Dictionary<int, Beatmap>>(RankedBeatmapCachePath);
-            }
-            if (File.Exists(UserCachePath))
-            {
-                UserCache = SaveManager.LoadSettings<Dictionary<int, User>>(UserCachePath);
-            }
-            if (File.Exists(UserNameIdCachePath))
-            {
-                UserNameIdCache = SaveManager.LoadSettings<Dictionary<string, int>>(UserNameIdCachePath);
-            }
-            if (File.Exists(LastMapCachePath))
-            {
-                LastMapCache = SaveManager.LoadSettings<Dictionary<ulong, List<int>>>(LastMapCachePath);
-            }
+            RankedBeatmapCache = SaveManager.LoadSettings<Dictionary<int, Beatmap>>(RankedBeatmapCachePath);
+            UserCache = SaveManager.LoadSettings<Dictionary<int, User>>(UserCachePath);
+            UserNameIdCache = SaveManager.LoadSettings<Dictionary<string, int>>(UserNameIdCachePath);
+            LastMapCache = SaveManager.LoadSettings<Dictionary<ulong, List<int>>>(LastMapCachePath);
 
             ResetTimer = new Timer(60000)
             {

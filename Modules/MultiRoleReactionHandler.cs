@@ -94,10 +94,7 @@ namespace Chino_chan.Modules
             ActiveCreations = new List<ActiveMultiRoleCreation>();
             RoleRegex = new Regex(@"<@&(\d*)>");
 
-            if (File.Exists(Filename))
-            {
-                Entries.AddRange(SaveManager.LoadSettings<MultiRoleEntry[]>(Filename));
-            }
+            Entries.AddRange(SaveManager.LoadSettings<MultiRoleEntry[]>(Filename));
 
             Client.MessageReceived += discordMessageReceived;
             Client.ReactionAdded += reactionAddAsync;

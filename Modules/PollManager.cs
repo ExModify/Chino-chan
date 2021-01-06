@@ -213,23 +213,15 @@ namespace Chino_chan.Modules
         }
         public void Load()
         {
-            if (File.Exists(Filename))
+            Polls = SaveManager.LoadSettings<Dictionary<ulong, List<Poll>>>(Filename);
+
+            int active = ActivePolls();
+            if (active != 0)
             {
-                Polls = SaveManager.LoadSettings<Dictionary<ulong, List<Poll>>>(Filename);
-                
-                int active = ActivePolls();
-                if (active != 0)
-                {
-                    StartPolls();
-                }
-                
-                Logger.Log(LogType.Poll, ConsoleColor.Green, "Poll", $"Loaded { CountPolls() } polls, and { active } of them are active!");
-                
+                StartPolls();
             }
-            else
-            {
-                Logger.Log(LogType.Poll, ConsoleColor.Blue, "Poll", $"Loaded 0 poll!");
-            }
+            
+            Logger.Log(LogType.Poll, ConsoleColor.Green, "Poll", $"Loaded { CountPolls() } polls, and { active } of them are active!");
         }
         private bool IsSaving { get; set; } = false;
 
