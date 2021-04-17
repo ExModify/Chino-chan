@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using YoutubeExplode.Playlists;
 using YoutubeExplode.Videos;
 
 namespace Chino_chan.Modules
@@ -124,6 +125,15 @@ namespace Chino_chan.Modules
             return await SelectAsync(Tracks, client, Context, Language.GetEntry("MusicHandler:SelectTrackSoundCloud"), Description, Language);
         }
         public async Task<Video> Select(MusicPlayer client, List<Video> Videos, ICommandContext Context, LanguageEntry Language)
+        {
+            if (Videos.Count > 20)
+            {
+                Videos.RemoveRange(20, Videos.Count - 20);
+            }
+            string Description = string.Join("\n", Videos.Select((t, index) => "#" + (index + 1) + " - **" + t.Title + "** by " + t.Author));
+            return await SelectAsync(Videos, client, Context, Language.GetEntry("MusicHandler:SelectVideoYouTube"), Description, Language);
+        }
+        public async Task<PlaylistVideo> Select(MusicPlayer client, List<PlaylistVideo> Videos, ICommandContext Context, LanguageEntry Language)
         {
             if (Videos.Count > 20)
             {

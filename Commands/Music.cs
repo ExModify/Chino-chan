@@ -247,7 +247,7 @@ namespace Chino_chan.Commands
                     PlaylistId? id = PlaylistId.TryParse(url);
                     if (id.HasValue)
                     {
-                        List<Video> videos = await client.Playlists.GetVideosAsync(id.Value).ToListAsync();
+                        List<PlaylistVideo> videos = await client.Playlists.GetVideosAsync(id.Value).ToListAsync();
                         if (videos.Count == 0)
                         {
                             Builder.Description = GetEntry("YTPlaylistEmpty");
@@ -280,8 +280,8 @@ namespace Chino_chan.Commands
                     }
                     else
                     {
-                        List<Video> videos = await Client.SearchYouTubeVideoAsync(url);
-                        Video video = await Global.MusicHandler.Select(Client, videos, Context, Language);
+                        List<PlaylistVideo> videos = await Client.SearchYouTubeVideoAsync(url);
+                        PlaylistVideo video = await Global.MusicHandler.Select(Client, videos, Context, Language);
 
                         if (video == null)
                         {
@@ -462,6 +462,22 @@ namespace Chino_chan.Commands
         }
 
         private async Task EnqueueVideo(Video video, EmbedBuilder Builder)
+        {
+            Client.Enqueue(video);
+
+            if (Client.State < PlayerState.Playing)
+                await Client.PlayAsync(Context);
+            else
+            {
+                Builder.Url = video.Url;
+                Builder.Description = GetEntry("YTVideoEnqueued");
+                Builder.AddField(GetEntry("TitleUploadedBy"), video.Title + " | " + video.Author);
+                Builder.ThumbnailUrl = video.Thumbnails.HighResUrl;
+
+                await Context.Channel.SendMessageAsync("", embed: Builder.Build());
+            }
+        }
+        private async Task EnqueueVideo(PlaylistVideo video, EmbedBuilder Builder)
         {
             Client.Enqueue(video);
 

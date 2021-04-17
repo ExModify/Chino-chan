@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YoutubeExplode.Playlists;
 using YoutubeExplode.Videos;
 
 namespace Chino_chan.Models.Music
@@ -13,6 +14,16 @@ namespace Chino_chan.Models.Music
     {
         public MusicItem() { }
         public MusicItem(Video Video)
+        {
+            Title = Video.Title;
+            Thumbnail = Video.Thumbnails.MaxResUrl;
+            Author = Video.Author;
+            UrlOrId = Video.Id;
+            Duration = Video.Duration;
+            PublicUrl = Video.Url;
+            IsYouTube = true;
+        }
+        public MusicItem(PlaylistVideo Video)
         {
             Title = Video.Title;
             Thumbnail = Video.Thumbnails.MaxResUrl;

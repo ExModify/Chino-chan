@@ -19,6 +19,7 @@ using YoutubeExplode;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 using System.Diagnostics;
+using YoutubeExplode.Playlists;
 
 namespace Chino_chan.Modules
 {
@@ -462,10 +463,10 @@ namespace Chino_chan.Modules
             }
         }
         
-        public async Task<List<Video>> SearchYouTubeVideoAsync(string Keywords)
+        public async Task<List<PlaylistVideo>> SearchYouTubeVideoAsync(string Keywords)
         {
             YoutubeClient client = new YoutubeClient();
-            List<Video> Result = new List<Video>(await client.Search.GetVideosAsync(Keywords).BufferAsync(10));
+            List<PlaylistVideo> Result = new List<PlaylistVideo>(await client.Search.GetVideosAsync(Keywords).BufferAsync(10));
             return Result;
         }
         public List<Track> SearchSoundCloudTrack(string Keywords)
@@ -503,6 +504,11 @@ namespace Chino_chan.Modules
             PropertyChanged?.Invoke();
         }
         public void Enqueue(Video Video)
+        {
+            Queue.Add(new MusicItem(Video));
+            PropertyChanged?.Invoke();
+        }
+        public void Enqueue(PlaylistVideo Video)
         {
             Queue.Add(new MusicItem(Video));
             PropertyChanged?.Invoke();

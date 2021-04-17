@@ -6,9 +6,9 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.NET" Version="2.3.0-dev-20201223.7"/>
+    <PackageReference Include="Discord.NET" Version="2.3.1"/>
     <PackageReference Include="osuBeatmapUtilities_ExModify" Version="1.0.0"/>
-    <PackageReference Include="YoutubeExplode" Version="5.1.9"/>
+    <PackageReference Include="YoutubeExplode" Version="6.0.0-alpha2"/>
     <PackageReference Include="Troschuetz.Random" Version="4.3.1"/>
     <PackageReference Include="TwitchLib" Version="3.1.1"/>
     <PackageReference Include="System.Drawing.Common" Version="4.7.0"/>
