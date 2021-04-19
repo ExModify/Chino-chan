@@ -315,18 +315,33 @@ namespace Chino_chan.Commands
         [Command("chstats"), ServerCommand(), Summary("Gives you the channel message statistics by only channel name")]
         public async Task ChannelStatisticsAsync(params string[] Args)
         {
-            string name = string.Join(" ", Args).ToLower();
             ITextChannel Channel = null;
 
             bool imgs = false;
+            bool hi_s = false;
+
+            string name = "";
+
+            foreach (string arg in Args)
+            {
+                if (arg.ToLower() == "-c")
+                {
+                    imgs = true;
+                }
+                else if (arg.ToLower() == "-h")
+                {
+                    hi_s = true;
+                }
+                else
+                {
+                    name += "arg" + " ";
+                }
+            }
+
+            name = name.Trim();
 
             if (name == "")
             {
-                Channel = Context.Channel as ITextChannel;
-            }
-            else if (name == "-c")
-            {
-                imgs = true;
                 Channel = Context.Channel as ITextChannel;
             }
             else
@@ -334,7 +349,7 @@ namespace Chino_chan.Commands
                 IReadOnlyCollection<ITextChannel> channels = await Context.Guild.GetTextChannelsAsync();
                 foreach (ITextChannel channel in channels)
                 {
-                    if (channel.Name.ToLower() == name || channel.Mention == name)
+                    if (channel.Name.ToLower() == name || channel.Mention == name || channel.Id.ToString() == name)
                     {
                         Channel = channel;
                         break ;
@@ -375,11 +390,13 @@ namespace Chino_chan.Commands
 
                         if (Current.Author.IsBot) continue;
 
-                        int c = 1;
+                        int c = -1;
 
                         if (imgs)
                         {
-                            c = 0;
+                            if (c == -1)
+                                c = 0;
+
                             if (Current.Attachments != null)
                             {
                                 foreach (IAttachment attachment in Current.Attachments)
@@ -399,6 +416,19 @@ namespace Chino_chan.Commands
                                 }
                             }
                         }
+                        else if (hi_s)
+                        {
+                            if (c == -1)
+                                c = 0;
+
+                            if (Current.Content.ToLower().Contains("hi"))
+                            {
+                                c++;
+                            }
+                        }
+                        if (c == -1)
+                            c = 1;
+                            
                         if (c != 0)
                         {
                             if (Statistics.ContainsKey(Current.Author.Id))
