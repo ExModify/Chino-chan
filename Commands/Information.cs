@@ -328,7 +328,7 @@ namespace Chino_chan.Commands
                 {
                     imgs = true;
                 }
-                else if (arg.ToLower() == "-h")
+                else if (arg.ToLower() == "-hi")
                 {
                     hi_s = true;
                 }
@@ -339,7 +339,6 @@ namespace Chino_chan.Commands
             }
 
             name = name.Trim();
-            await Context.Channel.SendMessageAsync($"The content of the name is: `{ name }`; hi-s: { hi_s }; imgs: { imgs }");
 
             if (string.IsNullOrWhiteSpace(name))
             {
