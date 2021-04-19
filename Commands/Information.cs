@@ -334,7 +334,7 @@ namespace Chino_chan.Commands
                 }
                 else
                 {
-                    name += "arg" + " ";
+                    name += arg + " ";
                 }
             }
 
@@ -428,7 +428,7 @@ namespace Chino_chan.Commands
                         }
                         if (c == -1)
                             c = 1;
-                            
+
                         if (c != 0)
                         {
                             if (Statistics.ContainsKey(Current.Author.Id))
