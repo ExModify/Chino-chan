@@ -124,7 +124,7 @@ namespace Chino_chan.Modules
                     string[] lines = File.ReadAllLines("/proc/meminfo");
                     foreach (string line in lines)
                     {
-                        if (line.StartsWith("MemFree"))
+                        if (line.StartsWith("MemAvailable"))
                         {
                             return Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim()) / 1024;
                         }
@@ -134,6 +134,30 @@ namespace Chino_chan.Modules
             }
         }
         public long TotalMemory { get; private set; }
+        public long AppUsedMemory 
+        {
+            get
+            {
+                Process CurrentProcess = Process.GetCurrentProcess();
+
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    return CurrentProcess.NonpagedSystemMemorySize64 + CurrentProcess.PagedMemorySize64;
+                }
+                else
+                {
+                    string[] lines = File.ReadAllLines($"/proc/{ CurrentProcess.Id }/status");
+                    foreach (string line in lines)
+                    {
+                        if (line.StartsWith("VmHWM"))
+                        {
+                            return Convert.ToInt64(line.Split(':')[1].Replace("kB", "").Trim()) * 1024;
+                        }
+                    }
+                    return -1;
+                }
+            }
+        }
 
         public MemInfo()
         {

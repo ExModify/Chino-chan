@@ -48,7 +48,7 @@ namespace Chino_chan.Models.API
             UserCount = userIds.Count;
 
             Process CurrentProcess = Process.GetCurrentProcess();
-            CurrentMemoryUsage = CurrentProcess.NonpagedSystemMemorySize64 + CurrentProcess.PagedMemorySize64;
+            CurrentMemoryUsage = RAM.AppUsedMemory;
             DiscordVersion = DiscordConfig.Version;
             Uptime = Global.Uptime;
 

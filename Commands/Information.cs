@@ -160,7 +160,7 @@ namespace Chino_chan.Commands
             {
                 IsInline = true,
                 Name = GetEntry("MemUsage"),
-                Value = (CurrentProcess.NonpagedSystemMemorySize64 + CurrentProcess.PagedMemorySize64) / 1048576 + "MB"
+                Value = (Global.SysInfo.MemInfo.AppUsedMemory / 1048576) + "MB"
             });
             Embed.AddField(new EmbedFieldBuilder()
             {
