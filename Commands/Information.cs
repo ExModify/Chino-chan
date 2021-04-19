@@ -339,8 +339,9 @@ namespace Chino_chan.Commands
             }
 
             name = name.Trim();
+            await Context.Channel.SendMessageAsync($"The content of the name is: `{ name }`; hi-s: { hi_s }; imgs: { imgs }");
 
-            if (name == "")
+            if (string.IsNullOrWhiteSpace(name))
             {
                 Channel = Context.Channel as ITextChannel;
             }
