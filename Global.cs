@@ -109,6 +109,8 @@ namespace Chino_chan
             LoadSettings();
             LoadImageFetchers();
 
+            PPCalculator.Init();
+
             SubTagHandler = new SubTagHandler();
             
             if (!Settings.Credentials.IsEmpty(CredentialType.Imgur))
@@ -429,6 +431,8 @@ namespace Chino_chan
                         Logger.Log(LogType.BeatmapManager, ConsoleColor.Green, null, "Loading downloaded beatmaps!");
                         Beatmaps.Load(Entrance.CancellationToken);
                         Logger.Log(LogType.BeatmapManager, ConsoleColor.Green, null, "Loading complete!");
+
+                        PPCalculator.Init();
                     });
                 }
                 ReadyFired = true;

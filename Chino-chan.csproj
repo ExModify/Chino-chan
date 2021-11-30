@@ -6,14 +6,16 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.NET" Version="2.3.1"/>
-    <PackageReference Include="osuBeatmapUtilities_ExModify" Version="1.0.0"/>
-    <PackageReference Include="YoutubeExplode" Version="6.0.0-alpha2"/>
-    <PackageReference Include="Troschuetz.Random" Version="4.3.1"/>
-    <PackageReference Include="TwitchLib" Version="3.1.1"/>
-    <PackageReference Include="System.Drawing.Common" Version="4.7.0"/>
-    <PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1"/>
-    <PackageReference Include="Imgur.API" Version="5.0.0-beta1"/>
-    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0-rc.2.20475.5"/>
+    <PackageReference Include="Discord.NET" Version="2.3.1" />
+    <PackageReference Include="EFCore.NamingConventions" Version="5.0.2" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.5.1" />
+    <PackageReference Include="osuBeatmapUtilities_ExModify" Version="1.0.0" />
+    <PackageReference Include="YoutubeExplode" Version="6.0.0-alpha2" />
+    <PackageReference Include="Troschuetz.Random" Version="4.3.1" />
+    <PackageReference Include="TwitchLib" Version="3.1.1" />
+    <PackageReference Include="System.Drawing.Common" Version="4.7.0" />
+    <PackageReference Include="WebSocketSharp-netstandard" Version="1.0.1" />
+    <PackageReference Include="Imgur.API" Version="5.0.0-beta1" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0-rc.2.20475.5" />
   </ItemGroup>
 </Project>

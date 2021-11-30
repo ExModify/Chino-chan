@@ -7,11 +7,6 @@ using Chino_chan.Modules;
 using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
-using osuBeatmapUtilities.Rulesets;
-using osuBeatmapUtilities.Rulesets.Difficulty;
-using osuBeatmapUtilities.Rulesets.Osu;
-using osuBeatmapUtilities.Rulesets.Scoring;
-using osuBeatmapUtilities.Scoring;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -958,83 +953,57 @@ namespace Chino_chan.Commands
                 }
             }
             
-            ScoreInfo info = new ScoreInfo();
-            for (int i = 0; i < 7; i++)
-            {
-                info.Statistics[(HitResult)i] = 0;
-            }
+            long combo = 0, good = 0, meh = 0, miss = 0;
+            double acc = 0;
+
             for (int i = 0; i < Args.Length; i++)
             {
-                int s = -1;
+                long s = -1;
                 switch (Args[i].ToLower())
                 {
-                    case "-300s":
-                        if (Args.Length <= i + 1 || !int.TryParse(Args[i + 1], out s) || s < 0)
-                        {
-                            await ReplyAsync(GetEntry("CheckUsage"));
-                            return;
-                        }
-                        info.Statistics[HitResult.Perfect] = s;
-                        break;
-                    case "-300":
-                        if (Args.Length <= i + 1 || !int.TryParse(Args[i + 1], out s) || s < 0)
-                        {
-                            await ReplyAsync(GetEntry("CheckUsage"));
-                            return;
-                        }
-                        info.Statistics[HitResult.Great] = s;
-                        break;
                     case "-100":
-                        if (Args.Length <= i + 1 || !int.TryParse(Args[i + 1], out s) || s < 0)
+                        if (Args.Length <= i + 1 || !long.TryParse(Args[i + 1], out s) || s < 0)
                         {
                             await ReplyAsync(GetEntry("CheckUsage"));
                             return;
                         }
-                        info.Statistics[HitResult.Good] = s;
+                        good = s;
                         break;
                     case "-50":
-                        if (Args.Length <= i + 1 || !int.TryParse(Args[i + 1], out s) || s < 0)
+                        if (Args.Length <= i + 1 || !long.TryParse(Args[i + 1], out s) || s < 0)
                         {
                             await ReplyAsync(GetEntry("CheckUsage"));
                             return;
                         }
-                        info.Statistics[HitResult.Meh] = s;
+                        meh = s;
                         break;
                     case "-miss":
-                        if (Args.Length <= i + 1 || !int.TryParse(Args[i + 1], out s) || s < 0)
+                        if (Args.Length <= i + 1 || !long.TryParse(Args[i + 1], out s) || s < 0)
                         {
                             await ReplyAsync(GetEntry("CheckUsage"));
                             return;
                         }
-                        info.Statistics[HitResult.Miss] = s;
-                        break;
-                    case "-score":
-                        if (Args.Length <= i + 1 || !int.TryParse(Args[i + 1], out s) || s < 0)
-                        {
-                            await ReplyAsync(GetEntry("CheckUsage"));
-                            return;
-                        }
-                        info.TotalScore = s;
+                        miss = s;
                         break;
                     case "-acc":
-                        if (Args.Length <= i + 1 || !double.TryParse(Args[i + 1], out double acc) || acc < 0)
+                        if (Args.Length <= i + 1 || !double.TryParse(Args[i + 1], out double accParam) || accParam < 0)
                         {
                             await ReplyAsync(GetEntry("CheckUsage"));
                             return;
                         }
-                        info.Accuracy = acc;
+                        acc = accParam;
                         break;
                     case "-combo":
-                        if (Args.Length <= i + 1 || !int.TryParse(Args[i + 1], out s) || s < 0)
+                        if (Args.Length <= i + 1 || !long.TryParse(Args[i + 1], out s) || s < 0)
                         {
                             await ReplyAsync(GetEntry("CheckUsage"));
                             return;
                         }
-                        info.MaxCombo = s;
+                        combo = s;
                         break;
                 }
             }
-            
+
             osuBeatmapUtilities.Beatmap beatmap = manager.LoadBeatmap(BeatmapId);
             if (beatmap == null)
             {
@@ -1042,41 +1011,48 @@ namespace Chino_chan.Commands
                 return;
             }
 
-            List<osuBeatmapUtilities.Mod> mods = new List<osuBeatmapUtilities.Mod>();
-            Ruleset ruleset = null;
-
-            string hitres = "";
-
             switch (beatmap.Mode)
             {
                 case osuBeatmapUtilities.Mode.Osu:
-                    ruleset = new OsuRuleset();
                     break;
                 default:
                     await ReplyAsync(GetEntry("ModeNotSupported"));
                     return;
             }
+            List<string> mods = new List<string>();
+            Type modType = typeof(ShortPPMods);
+            IEnumerable<ShortPPMods> allowedMod = Enum.GetValues(modType).Cast<ShortPPMods>();
+            ShortPPMods modsValue = ShortPPMods.None;
             if (Args.Length > 0)
             {
                 string joined = string.Join("", Args).ToLower();
-                IEnumerable<osuBeatmapUtilities.Mod> allMods = ruleset.GetAllMods();
-
-                foreach (osuBeatmapUtilities.Mod mod in allMods)
+                
+                foreach (ShortPPMods mod in allowedMod)
                 {
-                    if (joined.Contains(mod.Acronym.ToLower()))
-                        mods.Add(mod);
+                    if (joined.Contains(mod.ToString().ToLower()))
+                    {
+                        mods.Add(mod.ToString().ToLower());
+                        modsValue |= mod;
+                    }
                 }
             }
-            info.Mods = mods.ToArray();
-            PerformanceCalculator calc = ruleset.CreatePerformanceCalculator(beatmap.WorkingBeatmap, info);
-            Dictionary<string, double> inf = new Dictionary<string, double>();
-            double pp = calc.Calculate(inf);
-            info = calc.FixedScore;
 
+            PPCalcSTDReport rep = PPCalculator.CountStd(BeatmapId, combo, good, meh, miss, acc, (int)modsValue);
+
+            long great = rep.Great;
+            good = rep.Good;
+            meh = rep.Meh;
+            miss = rep.Miss;
+            acc = rep.Accuracy;
+            double pp = rep.PP;
+            double sr = rep.SR;
+            
+
+            string hitres = "";
             switch (beatmap.Mode)
             {
                 case osuBeatmapUtilities.Mode.Osu:
-                    hitres = $"[{ info.Statistics[HitResult.Great] }/{ info.Statistics[HitResult.Good] }/{ info.Statistics[HitResult.Meh] }/{ info.Statistics[HitResult.Miss] }]";
+                    hitres = $"[{ great }/{ good }/{ meh }/{ miss }]";
                     break;
             }
             
@@ -1098,25 +1074,25 @@ namespace Chino_chan.Commands
                     {
                         IsInline = true,
                         Name = GetEntry("Hits"),
-                        Value = hitres + " - " + info.Accuracy.ToString("N2") + "%"
+                        Value = hitres + " - " + acc.ToString("N2") + "%"
                     },
                     new EmbedFieldBuilder()
                     {
                         IsInline = true,
                         Name = GetEntry("Mods"),
-                        Value = mods.Count > 0 ? string.Join(", ", mods.Select(t => t.Name)) : "NoMod"
+                        Value = mods.Count > 0 ? string.Join(", ", mods).ToUpper() : "NoMod"
                     },
                     new EmbedFieldBuilder()
                     {
                         IsInline = true,
                         Name = GetEntry("Combo"),
-                        Value = info.MaxCombo + "x/" + inf["Max Combo"] + "x"
+                        Value = rep.MaxCombo + "x/" + rep.TotalMaxCombo + "x"
                     },
                     new EmbedFieldBuilder()
                     {
                         IsInline = true,
                         Name = GetEntry("ppsr"),
-                        Value = "**" + pp.ToString("N2") + $"pp** // **{ inf["Star Rating"].ToString("N2") }\\***"
+                        Value = "**" + pp.ToString("N2") + $"pp** // **{ sr.ToString("N2") }\\***"
                     }
                 },
                 Color = await Global.GetAverageColorAsync(thurl)

@@ -38,4 +38,17 @@ namespace Chino_chan.Models.osuAPI
         Key3 =          134217728,
         Key2 =          268435456
     }
+    public enum ShortPPMods
+    {
+        None = 0,
+        NF = 1,
+        EZ = 2,
+        HD = 8,
+        HR = 16,
+        DT = 64,
+        HT = 256,
+        NC = 512,
+        FL = 1024,
+        SO = 4096
+    }
 }

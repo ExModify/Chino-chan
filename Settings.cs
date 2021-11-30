@@ -38,6 +38,8 @@ namespace Chino_chan
 
         public string SoundCloudClientId { get; set; } = "4dd97a35cf647de595b918944aa6915d";
 
+        public string PPCPath { get; set; } = "C:\\Libs\\pp\\PerformanceCalculator.exe";
+
         public Dictionary<ulong, int> osuDiscordUserDatabase { get; set; } = new Dictionary<ulong, int>();
         
         public string[] ImageExtensions { get; set; } = new string[]
