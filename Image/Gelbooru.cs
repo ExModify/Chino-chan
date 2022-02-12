@@ -10,6 +10,23 @@ using Newtonsoft.Json.Serialization;
 
 namespace Chino_chan.Image
 {
+    public class Attributes
+    {
+        [JsonProperty("limit")]
+        public int Limit { get; set; }
+        [JsonProperty("offset")]
+        public int Offset { get; set; }
+        [JsonProperty("count")]
+        public int Count { get; set; }
+    }
+    public class DAPI
+    {
+        [JsonProperty("@attributes")]
+        public Attributes Attributes { get; set; }
+
+        [JsonProperty("post")]
+        public List<Post> Posts { get; set; }
+    }
     public class Post
     {
         [JsonProperty("id")]
@@ -19,7 +36,7 @@ namespace Chino_chan.Image
         public string Link { get; private set; }
         [JsonProperty("image")]
         public string Filename { get; private set; }
-        [JsonProperty("hash")]
+        [JsonProperty("md5")]
         public string MD5 { get; private set; }
         [JsonProperty("tags")]
         public string Tags { get; private set; }
@@ -63,7 +80,7 @@ namespace Chino_chan.Image
             List<Post> posts;
             try
             {
-                posts = JsonConvert.DeserializeObject<List<Post>>(Content);
+                posts = JsonConvert.DeserializeObject<DAPI>(Content).Posts;
             }
             catch (Exception e)
             {
