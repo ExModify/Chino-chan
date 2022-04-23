@@ -1,4 +1,4 @@
-using Chino_chan.Image;
+﻿using Chino_chan.Image;
 using Chino_chan.Modules;
 using Chino_chan.Models.Settings;
 using Chino_chan.Models.Image;

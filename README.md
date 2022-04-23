@@ -1,4 +1,4 @@
-# Chino-chan
+﻿# Chino-chan
 ExMo's small multifunctional Discord bot owo
 
 This project uses peppy's [Performance Calculator](https://github.com/ppy/osu-tools/tree/master/PerformanceCalculator) moved to a separate dll targeting .Net Framework 4.6.1! [You can download it here](https://drive.google.com/open?id=1ZGslNN8MTuEGHuzuWiw_Y-X5XX5Ce6IL)
