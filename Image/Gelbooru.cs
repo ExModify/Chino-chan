@@ -31,7 +31,7 @@ namespace Chino_chan.Image
     {
         [JsonProperty("id")]
         public string PostId { get; set; }
-        
+
         [JsonProperty("file_url")]
         public string Link { get; private set; }
         [JsonProperty("image")]
@@ -48,7 +48,7 @@ namespace Chino_chan.Image
         [JsonIgnore]
         public bool IsAnimated { get => Link.EndsWith(".gif") || Link.EndsWith(".webm") || Link.EndsWith(".mp4"); }
     }
-    
+
     public class Gelbooru
     {
         public static List<Post> FetchImages(IEnumerable<string> Tags, bool RandomPage = false)

@@ -25,7 +25,7 @@ namespace Chino_chan.Modules
             PollMessageIds = new Dictionary<ulong, List<PollIdentifier>>();
             Client.ReactionAdded += async (Cachable, Channel, Reaction) =>
             {
-                if (!(Channel is IGuildChannel GuildChannel)) return;
+                if (!(await Channel.GetOrDownloadAsync() is IGuildChannel GuildChannel)) return;
                 IUserMessage message = await Cachable.GetOrDownloadAsync();
 
                 if (PollMessageIds.ContainsKey(message.Id))
@@ -64,7 +64,7 @@ namespace Chino_chan.Modules
             };
             Client.ReactionRemoved += async (Cachable, Channel, Reaction) =>
             {
-                if (!(Channel is IGuildChannel GuildChannel)) return;
+                if (!(await Channel.GetOrDownloadAsync() is IGuildChannel GuildChannel)) return;
                 IUserMessage message = await Cachable.GetOrDownloadAsync();
 
                 if (PollMessageIds.ContainsKey(message.Id))
@@ -104,7 +104,7 @@ namespace Chino_chan.Modules
 
             Client.MessageDeleted += async (Cachable, Channel) =>
             {
-                if (!(Channel is IGuildChannel guildChannel))
+                if (!(await Channel.GetOrDownloadAsync() is IGuildChannel guildChannel))
                     return;
 
                 if (PollMessageIds.ContainsKey(Cachable.Id))
@@ -140,8 +140,8 @@ namespace Chino_chan.Modules
                         }
                     }
 
-                    IDMChannel ch = await usr.GetOrCreateDMChannelAsync();
-                    await ch.SendMessageAsync($"The message of the poll you made with id \"{ id.PollId }\" has been removed from #{ Channel.Name } on guild \"{ guildChannel.Guild.Name }\"!");
+                    IDMChannel ch = await usr.CreateDMChannelAsync();
+                    await ch.SendMessageAsync($"The message of the poll you made with id \"{ id.PollId }\" has been removed from #{ guildChannel.Name } on guild \"{ guildChannel.Guild.Name }\"!");
                 }
             };
             Client.LeftGuild += async (Guild) =>
@@ -169,7 +169,7 @@ namespace Chino_chan.Modules
                                 }
                             }
 
-                            IDMChannel ch = await usr.GetOrCreateDMChannelAsync();
+                            IDMChannel ch = await usr.CreateDMChannelAsync();
                             await ch.SendMessageAsync($"Chino-chan has been kicked or banned form { Guild.Name } so your poll with id { id.PollId } has been canceled!");
                         }
                     }
@@ -203,7 +203,7 @@ namespace Chino_chan.Modules
                                 }
                             }
 
-                            IDMChannel ch = await usr.GetOrCreateDMChannelAsync();
+                            IDMChannel ch = await usr.CreateDMChannelAsync();
                             await ch.SendMessageAsync($"{ guildChannel.Name } channel has been removed from { guildChannel.Guild.Name } so the poll with id ");
                         }
                     }
@@ -279,7 +279,7 @@ namespace Chino_chan.Modules
                                 }
                             }
 
-                            IDMChannel ch = usr.GetOrCreateDMChannelAsync().Result;
+                            IDMChannel ch = usr.CreateDMChannelAsync().Result;
                             if (ch != null)
                             {
                                 ch.SendMessageAsync($"I'm sorry, but the poll with id { poll.PollId } couldn't be continued because the message or channel may have been deleted or I have left the server!").ConfigureAwait(false).GetAwaiter().GetResult();
@@ -315,7 +315,7 @@ namespace Chino_chan.Modules
                     }
                 }
 
-                IDMChannel channel = await usr.GetOrCreateDMChannelAsync();
+                IDMChannel channel = await usr.CreateDMChannelAsync();
                 EmbedBuilder builder = new EmbedBuilder()
                 {
                     Title = "New poll registered!",
@@ -399,7 +399,7 @@ namespace Chino_chan.Modules
                     }
                 }
 
-                IDMChannel channel = await usr.GetOrCreateDMChannelAsync();
+                IDMChannel channel = await usr.CreateDMChannelAsync();
 
                 if (Poll.Duration == TimeSpan.Zero)
                 {

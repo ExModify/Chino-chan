@@ -20,6 +20,7 @@ using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 using System.Diagnostics;
 using YoutubeExplode.Playlists;
+using YoutubeExplode.Search;
 
 namespace Chino_chan.Modules
 {
@@ -463,11 +464,18 @@ namespace Chino_chan.Modules
             }
         }
         
-        public async Task<List<PlaylistVideo>> SearchYouTubeVideoAsync(string Keywords)
+
+        public async Task<List<VideoSearchResult>> SearchYouTubeVideoAsync(string Keywords)
         {
             YoutubeClient client = new YoutubeClient();
-            List<PlaylistVideo> Result = new List<PlaylistVideo>(await client.Search.GetVideosAsync(Keywords).BufferAsync(10));
-            return Result;
+            List<VideoSearchResult> result = new List<VideoSearchResult>();
+            await foreach (VideoSearchResult video in client.Search.GetVideosAsync(Keywords))
+            {
+                result.Add(video);
+                if (result.Count == 10) break;
+            }
+            
+            return result;
         }
         public List<Track> SearchSoundCloudTrack(string Keywords)
         {
@@ -508,7 +516,7 @@ namespace Chino_chan.Modules
             Queue.Add(new MusicItem(Video));
             PropertyChanged?.Invoke();
         }
-        public void Enqueue(PlaylistVideo Video)
+        public void Enqueue(VideoSearchResult Video)
         {
             Queue.Add(new MusicItem(Video));
             PropertyChanged?.Invoke();
@@ -609,11 +617,11 @@ namespace Chino_chan.Modules
                 }
                 if (sm != null)
                 {
-                    IEnumerable<IAudioStreamInfo> streamInfos = sm.GetAudio();
+                    IEnumerable<IAudioStreamInfo> streamInfos = sm.GetAudioStreams();
                     
                     if (streamInfos.Count() > 0)
                     {
-                        IStreamInfo info = streamInfos.WithHighestBitrate();
+                        IStreamInfo info = streamInfos.GetWithHighestBitrate();
                         Url = info.Url;
                     }
                 }

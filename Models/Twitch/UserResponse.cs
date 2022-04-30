@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using TwitchLib.Api.Helix.Models.Users;
+using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

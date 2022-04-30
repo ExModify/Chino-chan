@@ -37,9 +37,10 @@ namespace Chino_chan.Commands
         {
             if (Args.Length == 0)
             {
-                if (Context.Client.CurrentUser.Activity.Name != "")
+
+                if (Context.Client.CurrentUser.Activities.Any())
                 {
-                    await Context.Channel.SendMessageAsync("My game is `" + Context.Client.CurrentUser.Activity.Name + "` owo");
+                    await Context.Channel.SendMessageAsync("My game is `" + Context.Client.CurrentUser.Activities.First().Name + "` owo");
                 }
                 else
                 {
@@ -49,7 +50,7 @@ namespace Chino_chan.Commands
             else
             {
                 await Global.Client.SetGameAsync(string.Join(" ", Args));
-                await Context.Channel.SendMessageAsync("My game has been changed to `" + Context.Client.CurrentUser.Activity.Name + "` owo");
+                await Context.Channel.SendMessageAsync("My game has been changed to `" + Context.Client.CurrentUser.Activities.First().Name + "` owo");
             }
         }
 

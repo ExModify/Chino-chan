@@ -1,19 +1,28 @@
-﻿namespace Chino_chan.Models.PerformanceCalculator
+﻿using System.Collections.Generic;
+using Newtonsoft.Json;
+
+namespace Chino_chan.Models.PerformanceCalculator
 {
-    using System;
-    using System.Collections.Generic;
-
-    using System.Globalization;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     public partial class PpcOutput
     {
         [JsonProperty("score")]
         public Score Score { get; set; }
 
+        private double Pp { get; set; } = 0;
+
         [JsonProperty("pp")]
-        public double PP { get; set; }
+        public double PP
+        {
+            get
+            {
+                if (Pp == 0) return PerformanceAttributes.PP;
+                return Pp;
+            }
+            set
+            {
+                Pp = value;
+            }
+        }
 
         [JsonProperty("performance_attributes")]
         public PerformanceAttributes PerformanceAttributes { get; set; }
@@ -71,6 +80,9 @@
 
         [JsonProperty("max_combo")]
         public long MaxCombo { get; set; }
+
+        [JsonProperty("pp")]
+        public double PP { get; set; }
     }
 
     public partial class Score

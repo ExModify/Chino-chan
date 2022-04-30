@@ -96,17 +96,17 @@ namespace Chino_chan.Modules
 
             Entries.AddRange(SaveManager.LoadSettings<MultiRoleEntry[]>(Filename));
 
-            Client.MessageReceived += discordMessageReceived;
-            Client.ReactionAdded += reactionAddAsync;
-            Client.ReactionRemoved += reactionRemoveAsync;
-            Client.MessageDeleted += messageDeleted;
-            Client.ChannelDestroyed += channelDeleted;
-            Client.LeftGuild += leftGuild;
+            Client.MessageReceived += DiscordMessageReceived;
+            Client.ReactionAdded += ReactionAddAsync;
+            Client.ReactionRemoved += ReactionRemoveAsync;
+            Client.MessageDeleted += MessageDeleted;
+            Client.ChannelDestroyed += ChannelDeleted;
+            Client.LeftGuild += LeftGuild;
         }
 
         public bool StartInformationFetching(ICommandContext Context)
         {
-            if (getCreation(Context) > -1)
+            if (GetCreation(Context) > -1)
                 return false;
 
             ActiveMultiRoleCreation creation = new ActiveMultiRoleCreation(Context);
@@ -118,7 +118,7 @@ namespace Chino_chan.Modules
 
         public bool AddToDelete(ICommandContext Context, IUserMessage Message)
         {
-            int index = getCreation(Context);
+            int index = GetCreation(Context);
             if (index > -1)
             {
                 ActiveCreations[index].MessagesToDelete.Add(Message);
@@ -132,7 +132,7 @@ namespace Chino_chan.Modules
             SaveManager.SaveData(Filename, Entries);
         }
 
-        private Task leftGuild(SocketGuild arg)
+        private Task LeftGuild(SocketGuild arg)
         {
             bool save = false;
             for (int i = 0; i < Entries.Count; i++)
@@ -150,7 +150,7 @@ namespace Chino_chan.Modules
             return Task.CompletedTask;
         }
 
-        private Task channelDeleted(SocketChannel arg)
+        private Task ChannelDeleted(SocketChannel arg)
         {
             List<MultiRoleEntry> entries = new List<MultiRoleEntry>();
             foreach (MultiRoleEntry entry in Entries)
@@ -174,7 +174,7 @@ namespace Chino_chan.Modules
             return Task.CompletedTask;
         }
 
-        private async Task discordMessageReceived(SocketMessage msg)
+        private async Task DiscordMessageReceived(SocketMessage msg)
         {
             if (!(msg is SocketUserMessage message) || message.Author.IsBot)
                 return;
@@ -184,7 +184,7 @@ namespace Chino_chan.Modules
             if (context.Guild == null || !Global.IsAdminOrHigher(message.Author.Id, context.Guild.Id))
                 return;
 
-            int index = getCreation(context);
+            int index = GetCreation(context);
 
             if (index > -1)
             {
@@ -212,13 +212,13 @@ namespace Chino_chan.Modules
                                 creation.MessagesToDelete.Add(await context.Channel.SendMessageAsync(language.GetEntry("MultiRoleSystem:MinOne")));
                                 break;
                             }
-                            await clearAsync(index);
-                            await createMessageAsync(context, creation);
+                            await ClearAsync(index);
+                            await CreateMessageAsync(context, creation);
                             return;
                         }
                         else if (message.Content.Equals("cancel", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            await clearAsync(index);
+                            await ClearAsync(index);
                             return;
                         }
                         else
@@ -285,21 +285,20 @@ namespace Chino_chan.Modules
             }
         }
 
-        private Task messageDeleted(Cacheable<IMessage, ulong> arg1, ISocketMessageChannel arg2)
+        private async Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
-            if (arg2 is IGuildChannel gCh)
+            if (await channel.GetOrDownloadAsync() is IGuildChannel gCh)
             {
-                MultiRoleEntry entry = getEntry(gCh, arg1.Id);
+                MultiRoleEntry entry = GetEntry(gCh, channel.Id);
                 if (entry != null)
                 {
                     Entries.Remove(entry);
                     Save();
                 }
             }
-            return Task.CompletedTask;
         }
 
-        private async Task createMessageAsync(CommandContext context, ActiveMultiRoleCreation creation)
+        private async Task CreateMessageAsync(CommandContext context, ActiveMultiRoleCreation creation)
         {
             IUserMessage message = await context.Channel.SendMessageAsync(creation.Message);
             Entries.Add(new MultiRoleEntry(context, message.Id, creation.EmoteStringRolePairs));
@@ -310,12 +309,12 @@ namespace Chino_chan.Modules
             }
         }
 
-        private async Task reactionAddAsync(Cacheable<IUserMessage, ulong> cacheable, ISocketMessageChannel channel,
+        private async Task ReactionAddAsync(Cacheable<IUserMessage, ulong> cacheable, Cacheable<IMessageChannel, ulong> channel,
             SocketReaction reaction)
         {
-            if (channel is IGuildChannel guildChannel)
+            if (await channel.GetOrDownloadAsync() is IGuildChannel guildChannel)
             {
-                MultiRoleEntry entry = getEntry(guildChannel, reaction.MessageId);
+                MultiRoleEntry entry = GetEntry(guildChannel, reaction.MessageId);
                 if (entry != null)
                 {
                     string not_animated = reaction.Emote.ToString().Replace("<a:", "<:");
@@ -368,12 +367,12 @@ namespace Chino_chan.Modules
                 }
             }
         }
-        private async Task reactionRemoveAsync(Cacheable<IUserMessage, ulong> cacheable, ISocketMessageChannel channel,
+        private async Task ReactionRemoveAsync(Cacheable<IUserMessage, ulong> cacheable, Cacheable<IMessageChannel, ulong> channel,
             SocketReaction reaction)
         {
-            if (channel is IGuildChannel guildChannel)
+            if (await channel.GetOrDownloadAsync() is IGuildChannel guildChannel)
             {
-                MultiRoleEntry entry = getEntry(guildChannel, reaction.MessageId);
+                MultiRoleEntry entry = GetEntry(guildChannel, reaction.MessageId);
 
                 if (entry != null)
                 {
@@ -408,7 +407,7 @@ namespace Chino_chan.Modules
             }
         }
 
-        private int getCreation(ICommandContext context)
+        private int GetCreation(ICommandContext context)
         {
             if (context.Guild == null)
                 return -1;
@@ -420,7 +419,7 @@ namespace Chino_chan.Modules
             return -1;
         }
 
-        private MultiRoleEntry getEntry(IGuildChannel channel, ulong msgId)
+        private MultiRoleEntry GetEntry(IGuildChannel channel, ulong msgId)
         {
             foreach (MultiRoleEntry entry in Entries)
             {
@@ -432,7 +431,7 @@ namespace Chino_chan.Modules
             return null;
         }
 
-        private async Task clearAsync(int index)
+        private async Task ClearAsync(int index)
         {
             ActiveMultiRoleCreation creation = ActiveCreations[index];
             foreach (IUserMessage message in creation.MessagesToDelete)

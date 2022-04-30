@@ -270,7 +270,7 @@ namespace Chino_chan.Commands
             }
             catch
             {
-                IDMChannel dm = await Context.User.GetOrCreateDMChannelAsync();
+                IDMChannel dm = await Context.User.CreateDMChannelAsync();
                 await dm.SendMessageAsync(GetEntry("CannotSend"));
             }
         }

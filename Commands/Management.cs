@@ -18,7 +18,7 @@ namespace Chino_chan.Commands
         [Command("purgedm"), Summary("Deletes all of my messages from our direct message channel")]
         public async Task PurgeDMAsync(params string[] _)
         {
-            IDMChannel DmChannel = await Context.User.GetOrCreateDMChannelAsync();
+            IDMChannel DmChannel = await Context.User.CreateDMChannelAsync();
             if (Context.Channel.Id == DmChannel.Id)
             {
                 int MessageCount = 0;
@@ -136,7 +136,7 @@ namespace Chino_chan.Commands
         [Command("purge"), ServerOwner(), Summary("Purges the current channel (give no | don't | false to avoid the \"This channel has been purged~\" text)")]
         public async Task PurgeChannelAsync(params string[] _)
         {
-            var DMChannel = await Context.User.GetOrCreateDMChannelAsync();
+            var DMChannel = await Context.User.CreateDMChannelAsync();
             if (DMChannel.Id == Context.Channel.Id)
             {
                 await Context.Channel.SendMessageAsync(GetEntry("NotForDMs"));
@@ -269,20 +269,19 @@ namespace Chino_chan.Commands
             }
             else
             {
-                List<IBan> Bans = (await Context.Guild.GetBansAsync()).ToList();
+                List<IBan> bans = new List<IBan>(await Context.Guild.GetBansAsync().FlattenAsync());
 
-                bool Revoke = false;
+                bool revoke = false;
+                string input = string.Join(" ", Args).ToLower();
 
-                foreach (IBan ban in Bans)
+                foreach (IBan ban in bans)
                 {
-                    string Input = string.Join(" ", Args).ToLower();
-
-                    if (!ulong.TryParse(Input, out ulong Id))
+                    if (!ulong.TryParse(input, out ulong Id))
                         Id = 0;
 
-                    if (ban.User.Username.ToLower() == Input || ban.User.Mention.ToLower() == Input || Id == ban.User.Id)
+                    if (ban.User.Username.ToLower() == input || ban.User.Mention.ToLower() == input || Id == ban.User.Id)
                     {
-                        Revoke = true;
+                        revoke = true;
                         try
                         {
                             await Context.Guild.RemoveBanAsync(ban.User);
@@ -297,7 +296,7 @@ namespace Chino_chan.Commands
                     }
                 }
 
-                if (!Revoke)
+                if (!revoke)
                 {
                     await Context.Channel.SendMessageAsync(GetEntry("NoBanFound"));
                 }
@@ -1258,7 +1257,7 @@ namespace Chino_chan.Commands
                     {
                         if (Global.Settings.SayPreferences[Context.User.Id].AutoDel)
                         {
-                            var Dm = await Context.User.GetOrCreateDMChannelAsync();
+                            var Dm = await Context.User.CreateDMChannelAsync();
                             if (Dm.Id != Context.Channel.Id)
                             {
                                 await Context.Message.DeleteAsync();

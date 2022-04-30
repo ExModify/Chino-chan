@@ -224,5 +224,10 @@ namespace Chino_chan
 
             return UserAccess.Common;
         }
+
+        public static string GetMaxResUrl(this IReadOnlyList<YoutubeExplode.Common.Thumbnail> thumbnails)
+        {
+            return thumbnails.Aggregate((curr, next) => curr.Resolution.Area > next.Resolution.Area ? curr : next).Url;
+        }
     }
 }

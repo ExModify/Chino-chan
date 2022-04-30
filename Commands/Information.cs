@@ -603,7 +603,7 @@ namespace Chino_chan.Commands
                     }
                     if (User != null)
                     {
-                        IDMChannel Dm = await User.GetOrCreateDMChannelAsync();
+                        IDMChannel Dm = await User.CreateDMChannelAsync();
 
                         if (Dm != null)
                         {
@@ -909,7 +909,7 @@ namespace Chino_chan.Commands
             }
             Message += $"\n{ GetEntry("FurtherHelp") }```";
 
-            var DMChannel = await Context.User.GetOrCreateDMChannelAsync();
+            var DMChannel = await Context.User.CreateDMChannelAsync();
             try
             {
                 await DMChannel.SendMessageAsync(Message);

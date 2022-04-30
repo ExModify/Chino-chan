@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using YoutubeExplode.Playlists;
+using YoutubeExplode.Search;
 using YoutubeExplode.Videos;
 
 namespace Chino_chan.Models.Music
@@ -16,20 +17,30 @@ namespace Chino_chan.Models.Music
         public MusicItem(Video Video)
         {
             Title = Video.Title;
-            Thumbnail = Video.Thumbnails.MaxResUrl;
-            Author = Video.Author;
+            Thumbnail = Video.Thumbnails.GetMaxResUrl();
+            Author = Video.Author.ChannelTitle;
             UrlOrId = Video.Id;
-            Duration = Video.Duration;
+            Duration = Video.Duration ?? TimeSpan.Zero;
             PublicUrl = Video.Url;
             IsYouTube = true;
         }
         public MusicItem(PlaylistVideo Video)
         {
             Title = Video.Title;
-            Thumbnail = Video.Thumbnails.MaxResUrl;
-            Author = Video.Author;
+            Thumbnail = Video.Thumbnails.GetMaxResUrl();
+            Author = Video.Author.ChannelTitle;
             UrlOrId = Video.Id;
-            Duration = Video.Duration;
+            Duration = Video.Duration ?? TimeSpan.Zero;
+            PublicUrl = Video.Url;
+            IsYouTube = true;
+        }
+        public MusicItem(VideoSearchResult Video)
+        {
+            Title = Video.Title;
+            Thumbnail = Video.Thumbnails.GetMaxResUrl();
+            Author = Video.Author.ChannelTitle;
+            UrlOrId = Video.Id;
+            Duration = Video.Duration ?? TimeSpan.Zero;
             PublicUrl = Video.Url;
             IsYouTube = true;
         }

@@ -190,10 +190,10 @@ namespace Chino_chan
                 LargeThreshold = 250,
                 LogLevel = LogSeverity.Verbose,
                 MessageCacheSize = 200,
-                ExclusiveBulkDelete = false
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildMembers
             });
             Level = new LevelSystem(Client);
-            WelcomeBannerManager = new WelcomeBannerManager();
+            // WelcomeBannerManager = new WelcomeBannerManager();
 
             Client.Log += (Log) =>
             {
@@ -524,7 +524,7 @@ namespace Chino_chan
 
                             if (Prefs.AutoDel)
                             {
-                                var Dm = await Context.User.GetOrCreateDMChannelAsync();
+                                var Dm = await Context.User.CreateDMChannelAsync();
                                 if (Dm.Id != Context.Channel.Id)
                                 {
                                     await Message.DeleteAsync();
@@ -661,7 +661,7 @@ namespace Chino_chan
             #region Role assign
             Client.ReactionAdded += async (Cache, Channel, Reaction) =>
             {
-                if (Channel is IGuildChannel GuildChannel)
+                if (await Channel.GetOrDownloadAsync() is IGuildChannel GuildChannel)
                 {
                     GuildSetting Setting = GuildChannel.Guild.GetSettings();
                     
@@ -687,7 +687,7 @@ namespace Chino_chan
             };
             Client.ReactionRemoved += async (Cache, Channel, Reaction) =>
             {
-                if (Channel is IGuildChannel GuildChannel)
+                if (await Channel.GetOrDownloadAsync() is IGuildChannel GuildChannel)
                 {
                     GuildSetting Setting = GuildChannel.Guild.GetSettings();
 
@@ -737,7 +737,7 @@ namespace Chino_chan
             {
                 if (Reaction.Emote.Name == "✅")
                 {
-                    if (Channel is IGuildChannel channel)
+                    if (await Channel.GetOrDownloadAsync() is IGuildChannel channel)
                     {
                         GuildSetting settings = channel.Guild.GetSettings();
                         if (settings.AssignMessages.Find(t => t.MessageId == Reaction.MessageId && t.ChannelId == channel.Id && t.GuildId == t.GuildId) is AssignMessage message)
@@ -756,7 +756,7 @@ namespace Chino_chan
             {
                 if (Reaction.Emote.Name == "✅")
                 {
-                    if (Channel is IGuildChannel channel)
+                    if (await Channel.GetOrDownloadAsync() is IGuildChannel channel)
                     {
                         GuildSetting settings = channel.Guild.GetSettings();
                         if (settings.AssignMessages.Find(t => t.MessageId == Reaction.MessageId && t.ChannelId == channel.Id && t.GuildId == t.GuildId) is AssignMessage message)

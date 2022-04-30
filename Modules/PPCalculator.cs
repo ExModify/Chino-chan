@@ -85,7 +85,6 @@ namespace Chino_chan.Modules
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
                 Logger.Log(LogType.Info, ConsoleColor.Yellow, "osu!PP", "PerformanceCalculator can't be found, using outdated PP calculator");
             }
         }
@@ -107,13 +106,13 @@ namespace Chino_chan.Modules
         public static PPCalcSTDReport CountStdFallback(int BeatmapID, int Combo = 0, int s100 = 0, int s50 = 0, int Misses = 0, double Acc = 0, int EnabledMods = 0)
         {
             Beatmap b = Global.Beatmaps.LoadBeatmap(BeatmapID);
-            PPCalcSTDReport report = new PPCalcSTDReport(Calculator.CalculateSTDPerformance(b, 0, s100, s50, Misses, Combo, Acc,(Mods)EnabledMods), b);
+            PPCalcSTDReport report = new PPCalcSTDReport(Calculator.CalculateSTDPerformance(b, 0, s100, s50, Misses, Combo, Acc, (Mods)EnabledMods), b);
             return report;
         }
         public static PPCalcSTDReport CountStdFallback(string BeatmapFile, int Combo = 0, int s100 = 0, int s50 = 0, int Misses = 0, double Acc = 0, int EnabledMods = 0)
         {
             Beatmap b = Global.Beatmaps.LoadBeatmapFromFile(BeatmapFile);
-            PPCalcSTDReport report = new PPCalcSTDReport(Calculator.CalculateSTDPerformance(b, 0, s100, s50, Misses, Combo, Acc,(Mods)EnabledMods), b);
+            PPCalcSTDReport report = new PPCalcSTDReport(Calculator.CalculateSTDPerformance(b, 0, s100, s50, Misses, Combo, Acc, (Mods)EnabledMods), b);
             return report;
         }
         public static PPCalcSTDReport CountStdPPC(string BeatmapFile, long Combo = 0, long s100 = 0, long s50 = 0, long Misses = 0, double Acc = 0, int EnabledMods = 0)

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TwitchLib.Api.Helix.Models.Streams;
+using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 
 namespace Chino_chan.Models.Twitch
 {
@@ -37,6 +38,7 @@ namespace Chino_chan.Models.Twitch
                 _ThumbnailUrl = value.Replace("{width}", "1280").Replace("{height}", "720");
             }
         }
+
 
         public StreamResponse(Stream stream)
         {

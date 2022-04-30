@@ -12,7 +12,9 @@ using System.Threading.Tasks;
 using System.Timers;
 using TwitchLib.Api;
 using TwitchLib.Api.Helix.Models.Streams;
+using TwitchLib.Api.Helix.Models.Streams.GetStreams;
 using TwitchLib.Api.Helix.Models.Users;
+using TwitchLib.Api.Helix.Models.Users.GetUsers;
 using TwitchLib.Client;
 using TwitchLib.Client.Models;
 
@@ -82,11 +84,11 @@ namespace Chino_chan.Modules
 
             Restore();
 
-            Update.Elapsed += (s, a) =>
+            Update.Elapsed += async (s, a) =>
             {
                 List<StreamResponse> Streams = new List<StreamResponse>();
 
-                Validate();
+                await ValidateAsync();
 
                 for (int i = 0; i < Tracking.Count; i += 100)
                 {
@@ -132,11 +134,11 @@ namespace Chino_chan.Modules
                 });
             };
 
-            UserDatabaseUpdater.Elapsed += (s, a) =>
+            UserDatabaseUpdater.Elapsed += async (s, a) =>
             {
                 var Keys = UserDatabase.Keys;
 
-                Validate();
+                await ValidateAsync();
 
 
                 List<UserResponse> Users = new List<UserResponse>();
@@ -158,9 +160,14 @@ namespace Chino_chan.Modules
 
             UserDatabaseUpdater.Start();
         }
-        private void Validate()
-        {
-            if (!api.Helix.Streams.CheckCredentialsAsync().Result.Result)
+        private async Task ValidateAsync()
+        {   
+            try
+            {
+                await api.Helix.Streams.GetStreamsAsync(first: 1);
+
+            }
+            catch
             {
                 string token = api.Helix.Streams.GetAccessToken();
                 api.Settings.AccessToken = token;

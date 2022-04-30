@@ -46,7 +46,7 @@ namespace Chino_chan
         public static CancellationToken CancellationToken;
         static TextReader InputStream;
         static Task DataSendTask;
-        
+
         public static void Main(string[] args)
         {
             Console.Title = "Chino-chan";
@@ -58,7 +58,7 @@ namespace Chino_chan
             {
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) SetErrorMode(ErrorModes.SEM_NOGPFAULTERRORBOX);
                 Args = args;
-                
+
                 if (Args.Length == 1)
                 {
                     if (Args[0] == "1")
@@ -100,7 +100,8 @@ namespace Chino_chan
 
                         lock (Console.Out)
                         {
-                            Console.Write("\r" + new string(' ', Console.WindowWidth - 1) + "\r");
+                            if (Environment.UserInteractive && Console.WindowWidth > 0)
+                                Console.Write("\r" + new string(' ', Console.WindowWidth - 1) + "\r");
                             Console.ForegroundColor = ConsoleColor.Blue;
                             Console.Write("[" + Message.Date.ToString("yyyy/MM/dd hh:mm:ss") + "] ");
 
@@ -141,7 +142,7 @@ namespace Chino_chan
             {
                 await Global.Client.SetStatusAsync(UserStatus.Online);
                 await Global.Client.SetGameAsync(Global.Settings.Game);
-                
+
                 await Global.Client.DownloadUsersAsync(Global.Client.Guilds);
 
                 if (ReloadChannel != null)
@@ -170,7 +171,7 @@ namespace Chino_chan
             var Trim = Lower.Trim();
             var Parameter = "";
             var Index = Command.IndexOf(" ");
-            
+
             if (Index >= 0)
             {
                 Lower = Lower.Substring(0, Index);

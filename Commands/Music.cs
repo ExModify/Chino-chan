@@ -17,6 +17,7 @@ using YoutubeExplode;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Playlists;
 using System.Diagnostics;
+using YoutubeExplode.Search;
 
 namespace Chino_chan.Commands
 {
@@ -266,7 +267,7 @@ namespace Chino_chan.Commands
                                 Builder.Url = playlist.Url;
                                 Builder.Description = GetEntry("YTPlaylistEnqueued");
                                 Builder.AddField(GetEntry("TitleUploadedBy"), playlist.Title + " | " + playlist.Author);
-                                Builder.ThumbnailUrl = videos[0].Thumbnails.HighResUrl;
+                                Builder.ThumbnailUrl = videos[0].Thumbnails.GetMaxResUrl();
 
                                 await Context.Channel.SendMessageAsync("", embed: Builder.Build());
                             }
@@ -280,8 +281,8 @@ namespace Chino_chan.Commands
                     }
                     else
                     {
-                        List<PlaylistVideo> videos = await Client.SearchYouTubeVideoAsync(url);
-                        PlaylistVideo video = await Global.MusicHandler.Select(Client, videos, Context, Language);
+                        List<VideoSearchResult> videos = await Client.SearchYouTubeVideoAsync(url);
+                        VideoSearchResult video = await Global.MusicHandler.Select(Client, videos, Context, Language);
 
                         if (video == null)
                         {
@@ -471,13 +472,13 @@ namespace Chino_chan.Commands
             {
                 Builder.Url = video.Url;
                 Builder.Description = GetEntry("YTVideoEnqueued");
-                Builder.AddField(GetEntry("TitleUploadedBy"), video.Title + " | " + video.Author);
-                Builder.ThumbnailUrl = video.Thumbnails.HighResUrl;
+                Builder.AddField(GetEntry("TitleUploadedBy"), video.Title + " | " + video.Author.ChannelTitle);
+                Builder.ThumbnailUrl = video.Thumbnails.GetMaxResUrl();
 
                 await Context.Channel.SendMessageAsync("", embed: Builder.Build());
             }
         }
-        private async Task EnqueueVideo(PlaylistVideo video, EmbedBuilder Builder)
+        private async Task EnqueueVideo(VideoSearchResult video, EmbedBuilder Builder)
         {
             Client.Enqueue(video);
 
@@ -487,8 +488,8 @@ namespace Chino_chan.Commands
             {
                 Builder.Url = video.Url;
                 Builder.Description = GetEntry("YTVideoEnqueued");
-                Builder.AddField(GetEntry("TitleUploadedBy"), video.Title + " | " + video.Author);
-                Builder.ThumbnailUrl = video.Thumbnails.HighResUrl;
+                Builder.AddField(GetEntry("TitleUploadedBy"), video.Title + " | " + video.Author.ChannelTitle);
+                Builder.ThumbnailUrl = video.Thumbnails.GetMaxResUrl();
 
                 await Context.Channel.SendMessageAsync("", embed: Builder.Build());
             }

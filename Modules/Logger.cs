@@ -45,7 +45,7 @@ namespace Chino_chan.Modules
             return str + Message;
         }
     }
-    public enum LogType 
+    public enum LogType
     {
         Debug,
         Discord,
@@ -97,16 +97,18 @@ namespace Chino_chan.Modules
                 {
                     Directory.CreateDirectory(Folder);
                 }
-                IEnumerable<string> Filenames = Directory.EnumerateFiles(Folder, "log.*.log").Select(t => t.ToLower().Substring(Folder.Length + 1));
-                for (int i = 0; i < int.MaxValue; i++)
-                {
-                    Filename = "log." + i + ".log";
 
-                    if (!Filenames.Contains(Filename))
+                IEnumerable<string> files = Directory.EnumerateFiles(Folder, "log.*.log");
+                int max = 0;
+                foreach (string t in files)
+                {
+                    if (int.TryParse(t.Split('.')[1], out int id) && id > max)
                     {
-                        break;
+                        max = id;
                     }
                 }
+                max++;
+                Filename = "log." + max + ".log";
                 Filename = Path.Join(Folder, Filename);
 
                 fs = new FileStream(Filename, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read);
@@ -151,8 +153,8 @@ namespace Chino_chan.Modules
                     {
                         LogMessage log = messages[i];
 
-                        if (Client.ConnectionState == ConnectionState.Connected && 
-                                (log.Type == LogType.Commands.ToString() || 
+                        if (Client.ConnectionState == ConnectionState.Connected &&
+                                (log.Type == LogType.Commands.ToString() ||
                                 log.Color == ConsoleColor.Red))
                         {
                             string msg = $"```css\n{ log }```";
@@ -165,7 +167,7 @@ namespace Chino_chan.Modules
                                 }
                                 catch
                                 {
-                                    
+
                                 }
                             }
                             if (logChannel != null)

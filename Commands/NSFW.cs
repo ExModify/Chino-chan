@@ -40,7 +40,7 @@ namespace Chino_chan.Commands
             string Endpoint = Base;
 
             bool Random = false;
-            
+
             if (Args.Length > 0)
             {
                 string Type = Args[0].ToLower();
@@ -68,7 +68,7 @@ namespace Chino_chan.Commands
                     Args = Args.Skip(1).ToArray();
                 }
             }
-            
+
             if (!Random)
                 Endpoint += string.Join("+", Args);
 
@@ -116,7 +116,7 @@ namespace Chino_chan.Commands
                         Content = Reader.ReadToEnd();
                     }
                 }
-                
+
                 if (!Content.Contains("div class=\"gallery\""))
                 {
                     await Context.Channel.SendMessageAsync(GetEntry("NoDoujinshi"));
@@ -207,7 +207,7 @@ namespace Chino_chan.Commands
 
             string Url = await Global.GetNekosLifeUrlAsync("keta");
 
-            
+
             EmbedBuilder Builder = new EmbedBuilder()
             {
                 Title = GetGlobalEntry("ImgUrlNoLoad", "N", "1"),
@@ -215,7 +215,7 @@ namespace Chino_chan.Commands
                 ImageUrl = Url,
                 Color = await Global.GetAverageColorAsync(Url)
             };
-            
+
             await Context.Channel.SendMessageAsync("", embed: Builder.Build());
         }
 
@@ -272,6 +272,60 @@ namespace Chino_chan.Commands
 
             await Context.Channel.SendMessageAsync("", embed: builder.Build());
         }
+        [Command("spank"), Summary("Spanks someone by mentioning them *visible pain*")]
+        public async Task SpankAsync(params string[] Args)
+        {
+            if (!Global.IsNsfwChannel(Settings, Context.Channel.Id))
+            {
+                await Context.Channel.SendMessageAsync(GetEntry("OnlyNSFW"));
+                return;
+            }
+
+            EmbedBuilder builder = new EmbedBuilder()
+            {
+                Color = EmbedColor
+            };
+
+            bool owner = Global.IsOwner(Context.Message.Author.Id) || Context.User.Id == 191650823682392064;
+            string targets = await GetTargetsAsync(!owner);
+            if (Global.BlockExMoTarget(targets, Context.Message.Author.Id))
+            {
+                await Context.Message.DeleteAsync();
+                return;
+            }
+            string url = null;
+            try
+            {
+                url = Global.GetImageFromCDN("spank", Settings);
+                builder.ImageUrl = url ?? throw new Exception();
+            }
+            catch
+            {
+                Logger.Log(LogType.Commands, ConsoleColor.Green, "ImageCDN", $"The url is \"{ url ?? "empty" }\"");
+                builder.Title = GetEntry("CouldNotGetImage");
+            }
+            if (targets == "")
+            {
+                if (owner)
+                {
+                    builder.Description = GetEntry("OwnerDescription");
+                }
+                else
+                {
+                    builder.Description = GetEntry("NoTargetDescription");
+                    builder.Title = "";
+                    builder.ImageUrl = "";
+                }
+            }
+            else
+            {
+                builder.Description = GetEntry("TargetDescription", "WHO", Context.Message.Author.Mention, "TARGETS", targets);
+            }
+            builder.Description = Global.ProcessEmotes(builder.Description, DevGuild).Limit();
+
+            await Context.Channel.SendMessageAsync("", embed: builder.Build());
+        }
+
 
         [Command("suck"), Alias("succ"), Summary("Sucks people by mentioning them - >///>")]
         public async Task SuckAsync(params string[] Args)
@@ -389,6 +443,6 @@ namespace Chino_chan.Commands
             return targets;
         }
 
-        
+
     }
 }
