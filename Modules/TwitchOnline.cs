@@ -22,12 +22,14 @@ namespace Chino_chan.Modules
 {
     public enum RegisterStatus
     {
+        FailedToStart,
         AlreadyTracking,
         UserNotFound,
         Success
     }
     public enum UnregisterStatus
     {
+        FailedToStart,
         NotTracking,
         UserNotFound,
         Success
@@ -48,6 +50,8 @@ namespace Chino_chan.Modules
         
         private Timer Update { get; set; }
         private Timer UserDatabaseUpdater { get; set; }
+
+        private bool Success { get; set; } = true;
 
         TwitchAPI api;
         
@@ -79,10 +83,29 @@ namespace Chino_chan.Modules
             api = new TwitchAPI();
             api.Settings.ClientId = Global.Settings.Credentials.Twitch.ClientId;
             api.Settings.Secret = Global.Settings.Credentials.Twitch.ClientSecret;
-            string token = api.Helix.Streams.GetAccessToken();
-            api.Settings.AccessToken = token;
 
-            Restore();
+            try
+            {
+                string token = api.Helix.Streams.GetAccessTokenAsync().Result;
+                api.Settings.AccessToken = token;
+            }
+            catch
+            {
+                Success = false;
+                Logger.Log(LogType.Twitch, ConsoleColor.Red, "Error", "Access token could not be fetched.");
+                return;
+            }
+
+            try
+            {
+                Restore();
+            }
+            catch
+            {
+                Success = false;
+                Logger.Log(LogType.Twitch, ConsoleColor.Red, "Error", "Could not restore.");
+                return;
+            }
 
             Update.Elapsed += async (s, a) =>
             {
@@ -93,7 +116,7 @@ namespace Chino_chan.Modules
                 for (int i = 0; i < Tracking.Count; i += 100)
                 {
                     GetStreamsResponse resp = api.Helix.Streams.GetStreamsAsync(userIds: Tracking.Skip(i).Take(100).Select(t => t.ToString()).ToList()).Result;
-                    Streams.AddRange(resp.Streams.Select(t => new StreamResponse(t)));
+                    Streams.AddRange(resp.Streams.Select(t => new StreamResponse(t)).Where(t => t.Id != 0));
                 }
 
                 long[] Ids = Streams.Select(t => t.UserId).ToArray();
@@ -161,7 +184,8 @@ namespace Chino_chan.Modules
             UserDatabaseUpdater.Start();
         }
         private async Task ValidateAsync()
-        {   
+        {
+            if (!Success) return;
             try
             {
                 await api.Helix.Streams.GetStreamsAsync(first: 1);
@@ -169,8 +193,16 @@ namespace Chino_chan.Modules
             }
             catch
             {
-                string token = api.Helix.Streams.GetAccessToken();
-                api.Settings.AccessToken = token;
+                try
+                {
+                    string token = await api.Helix.Streams.GetAccessTokenAsync();
+                    api.Settings.AccessToken = token;
+                }
+                catch
+                {
+                    Success = false;
+                    Logger.Log(LogType.Twitch, ConsoleColor.Red, "Error", "Access token could not be fetched.");
+                }
             }
         }
         private void Restore()
@@ -211,12 +243,14 @@ namespace Chino_chan.Modules
 
         public void StartTrack()
         {
+            if (!Success) return;
             Update.Start();
             Logger.Log(LogType.Twitch, ConsoleColor.DarkMagenta, null, "Twitch tracker started!");
         }
         
         public RegisterStatus Register(string Username)
         {
+            if (!Success) return RegisterStatus.FailedToStart;
             GetUsersResponse resp = api.Helix.Users.GetUsersAsync(logins: new List<string>() { Username }).Result;
             List<UserResponse> user = resp.Users.Select(t => new UserResponse(t)).ToList();
 
@@ -239,6 +273,7 @@ namespace Chino_chan.Modules
         }
         public UnregisterStatus Unregister(string Username)
         {
+            if (!Success) return UnregisterStatus.FailedToStart;
             GetUsersResponse resp = api.Helix.Users.GetUsersAsync(logins: new List<string>() { Username }).Result;
             List<UserResponse> user = resp.Users.Select(t => new UserResponse(t)).ToList();
 
@@ -272,6 +307,7 @@ namespace Chino_chan.Modules
 
         public UserResponse? GetUser(string Username)
         {
+            if (!Success) return null;
             Username = Username.ToLower();
 
             foreach (KeyValuePair<long, UserResponse> Pair in UserDatabase)
@@ -281,16 +317,23 @@ namespace Chino_chan.Modules
                     return Pair.Value;
                 }
             }
-            GetUsersResponse resp = api.Helix.Users.GetUsersAsync(logins: new List<string>() { Username }).Result;
-            List<UserResponse> user = resp.Users.Select(t => new UserResponse(t)).ToList();
+            try
+            {
+                GetUsersResponse resp = api.Helix.Users.GetUsersAsync(logins: new List<string>() { Username }).Result;
+                List<UserResponse> user = resp.Users.Select(t => new UserResponse(t)).ToList();
 
-            if (user.Count == 0)
+                if (user.Count == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    return user[0];
+                }
+            }
+            catch
             {
                 return null;
-            }
-            else
-            {
-                return user[0];
             }
         }
     }

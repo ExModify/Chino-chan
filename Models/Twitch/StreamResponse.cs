@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Chino_chan.Modules;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,11 +43,26 @@ namespace Chino_chan.Models.Twitch
 
         public StreamResponse(Stream stream)
         {
-            Id = long.Parse(stream.Id);
-            UserId = long.Parse(stream.UserId);
-            GameId = long.Parse(stream.GameId);
-            Title = stream.Title;
-            _ThumbnailUrl = stream.ThumbnailUrl;
+            try
+            {
+                Id = long.Parse(stream.Id);
+                UserId = long.Parse(stream.UserId);
+                GameId = stream.GameId == "" ? 0 : long.Parse(stream.GameId);
+                Title = stream.Title;
+                _ThumbnailUrl = stream.ThumbnailUrl;
+            }
+            catch (Exception e)
+            {
+                Id = 0;
+                UserId = 0;
+                GameId = 0;
+                Title = "";
+                _ThumbnailUrl = "";
+
+                Logger.Log(LogType.Twitch, ConsoleColor.Red, "Error", "Failed to parse stream! Stream object dump: "
+                    + JsonConvert.SerializeObject(stream, Formatting.Indented));
+                Logger.Log(LogType.Twitch, ConsoleColor.Red, "Error", "Exception: " + e.Message);
+            }
         }
     }
 }

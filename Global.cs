@@ -26,6 +26,10 @@ using Chino_chan.Models.Settings.Language;
 using osuBeatmapUtilities;
 using System.Globalization;
 using System.Diagnostics.CodeAnalysis;
+using Discord.Net;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Quantization;
 
 namespace Chino_chan
 {
@@ -86,7 +90,6 @@ namespace Chino_chan
         public static TwitchTracker TwitchTracker { get; private set; }
         public static SoundCloud SoundCloud { get; private set; }
         public static MusicHandler MusicHandler { get; private set; }
-        public static WelcomeBannerManager WelcomeBannerManager { get; private set; }
         public static BeatmapManager Beatmaps { get; private set; }
         public static MultiRoleReactionHandler MultiRoleHandler { get; private set; }
         public static osuTracker Tracker { get; private set; }
@@ -458,8 +461,9 @@ namespace Chino_chan
             };
             Logger.Log(LogType.Commands, ConsoleColor.Blue, null, "Loading Commands...");
 
-            CommandService.AddModulesAsync(Assembly.GetEntryAssembly(), null).ContinueWith((ModuleInfo) =>
+            CommandService.AddModulesAsync(Assembly.GetEntryAssembly(), null).ContinueWith(async moduleInfos =>
             {
+                IEnumerable<ModuleInfo> modules = await moduleInfos;
                 Logger.Log(LogType.Commands, ConsoleColor.Yellow, null, "Loaded Commands!");
             });
             Client.MessageReceived += async (ReceivedMessage) =>
@@ -849,7 +853,81 @@ namespace Chino_chan
                 }
             };
             #endregion
-            
+            /*
+            Client.Ready += async () =>
+            {
+                Logger.Log(LogType.Commands, ConsoleColor.Yellow, "Slash commands", "Adding slash commands...");
+                List<ApplicationCommandProperties> applicationCommandProperties = new List<ApplicationCommandProperties>();
+
+                try
+                {
+                    foreach (CommandInfo command in CommandService.Commands)
+                    {
+                        string commandName = string.Join("-", new string[] { command.Module.Group, command.Name }.Where(t => !string.IsNullOrEmpty(t))).ToLower();
+                        SlashCommandBuilder builder = new SlashCommandBuilder()
+                                                        .WithName(commandName)
+                                                        .WithDescription(command.Summary == null ? "No description for this command" : 
+                                                                                command.Summary.Trim() == "" ? 
+                                                                                    "No description for this command" :
+                                                                                    command.Summary[..Math.Min(command.Summary.Length, 100)]);
+                        builder.DefaultMemberPermissions = GuildPermission.SendMessages;
+                        foreach (Discord.Commands.ParameterInfo parameter in command.Parameters)
+                        {
+                            switch (parameter.Type.Name)
+                            {
+                                case "String[]":
+                                case "String":
+                                    if (parameter.Name != "_")
+                                        builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.String, parameter.Name);
+
+                                    if (parameter.Name == "_" && (command.Summary ?? "").Contains("mention"))
+                                        builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.Mentionable, "User or role mention");
+                                    break;
+                                case "Int32":
+                                    builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.Integer, parameter.Name);
+                                    break;
+                                case "UInt32":
+                                    builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.Integer, parameter.Name);
+                                    break;
+                                case "UInt64":
+                                    builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.Number, parameter.Name);
+                                    break;
+                                case "IUser":
+                                    builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.User, parameter.Name);
+                                    break;
+                                case "IGuildUser":
+                                    builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.User, parameter.Name);
+                                    break;
+                                case "IRole":
+                                    builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.Role, parameter.Name);
+                                    break;
+                                case "Boolean":
+                                    builder.AddOption(parameter.Name.ToLower(), ApplicationCommandOptionType.Boolean, parameter.Name);
+                                    break;
+                                default:
+                                    Logger.Log(LogType.Error, ConsoleColor.Red, "Slash commands", "Unhandled parameter type encountered: " + parameter.Type.Name);
+                                    break;
+                            }
+                        }
+
+                        applicationCommandProperties.Add(builder.Build());
+                    }
+
+                    Logger.Log(LogType.Commands, ConsoleColor.Yellow, "Slash commands", "Bulk adding slash commands..");
+                    await Client.BulkOverwriteGlobalApplicationCommandsAsync(applicationCommandProperties.ToArray());
+                    Logger.Log(LogType.Commands, ConsoleColor.Green, "Slash commands", "Success!");
+
+                }
+                catch (HttpException e)
+                {
+                    Logger.Log(LogType.Error, ConsoleColor.Red, "Slash commands", "Failed to register commands:", JsonConvert.SerializeObject(e, Formatting.Indented));
+                }
+                catch (Exception e)
+                {
+                    Logger.Log(LogType.Error, ConsoleColor.Red, "Slash commands", "Failed to register commands:", JsonConvert.SerializeObject(e, Formatting.Indented));
+                }
+            };
+            */
             SysInfo = new SysInfo();
             SysInfo.Load();
 
@@ -1555,58 +1633,34 @@ namespace Chino_chan
             
             Stream ImageStream = await Response.Content.ReadAsStreamAsync();
 
-            System.Drawing.Image Image;
+            Color color;
             try
             {
-                Image = System.Drawing.Image.FromStream(ImageStream);
+                using var image = SixLabors.ImageSharp.Image.Load<Rgb24>(ImageStream);
+
+                image.Mutate(x => x.Resize(new ResizeOptions()
+                {
+                    Sampler = KnownResamplers.NearestNeighbor,
+                    Size = new SixLabors.ImageSharp.Size(100, 0)
+                }).Quantize(new OctreeQuantizer(new QuantizerOptions()
+                {
+                    Dither = null,
+                    MaxColors = 1,
+                })));
+                color = new Color(image[0, 0].R, image[0, 0].G, image[0, 0].B);
             }
             catch
+            {
+                color = new Color(Random.Next(0, 256), Random.Next(0, 256), Random.Next(0, 256));
+            }
+            finally
             {
                 ImageStream.Dispose();
                 Response.Dispose();
                 c.Dispose();
-                return new Color(Random.Next(0, 256), Random.Next(0, 256), Random.Next(0, 256));
             }
 
-            int Scale = 1;
-
-            if (Image.Width > 1000 && Image.Height > 1000)
-                Scale = 8;
-
-            List<int> Rs = new List<int>();
-            List<int> Gs = new List<int>();
-            List<int> Bs = new List<int>();
-
-            int Width = Image.Width / Scale;
-            int Height = Image.Height / Scale;
-
-            System.Drawing.Bitmap map = new System.Drawing.Bitmap(Image);
-
-            for (int i = 0; i < Width; i++)
-            {
-                for (int j = 0; j < Height; j++)
-                {
-                    System.Drawing.Color Pixel = map.GetPixel(i * Scale, j * Scale);
-                    Rs.Add(Pixel.R);
-                    Gs.Add(Pixel.G);
-                    Bs.Add(Pixel.B);
-                }
-            }
-
-            map.Dispose();
-            Image.Dispose();
-            ImageStream.Dispose();
-            Response.Dispose();
-            c.Dispose();
-
-            byte R = (byte)Rs.Average();
-            byte G = (byte)Gs.Average();
-            byte B = (byte)Bs.Average();
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            
-            return new Color(R, G, B);
+            return color;
         }
         
         public static async Task SendMessageAsync(string Message, ITextChannel Channel)

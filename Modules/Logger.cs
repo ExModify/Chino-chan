@@ -124,9 +124,9 @@ namespace Chino_chan.Modules
             NewLog?.Invoke(Message);
         }
 
-        public static void Log(LogType Type, ConsoleColor Color, string Severity, string Message)
+        public static void Log(LogType type, ConsoleColor color, string severity, params string[] message)
         {
-            LogMessage msg = new LogMessage(Type, Color, Severity, Message);
+            LogMessage msg = new LogMessage(type, color, severity, string.Join(Environment.NewLine, message));
             messages.Add(msg);
             if (Entrance.IsHandler)
             {

@@ -4,6 +4,8 @@ using Discord;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -18,6 +20,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using SixLabors.ImageSharp.Processing;
 
 namespace Chino_chan.Modules
 {
@@ -317,9 +320,9 @@ namespace Chino_chan.Modules
             {
                 if (!Directory.Exists("favicon")) Directory.CreateDirectory("favicon");
 
-                System.Drawing.Image Image = System.Drawing.Image.FromStream(new HttpClient().GetStreamAsync(AvatarUrl).Result);
-                Image.Save("favicon/" + Filename, System.Drawing.Imaging.ImageFormat.Icon);
-                Image.Dispose();
+                Stream s = new HttpClient().GetStreamAsync(AvatarUrl).Result;
+
+                SaveImageAsIco(s, "favicon/" + Filename);
             }
 
             MemoryStream ms = new MemoryStream();
@@ -412,6 +415,61 @@ namespace Chino_chan.Modules
                 message = "{ \"error\": \"Please specify the user id with the uid query\" }";
             }
             return message;
+        }
+
+        void SaveImageAsIco(Stream src, string dst)
+        {
+            using Image<Rgb24> image = SixLabors.ImageSharp.Image.Load<Rgb24>(src);
+
+            int[] iconSizes = { 16, 32, 48 };
+
+            using var stream = new FileStream(dst, FileMode.Create);
+            using var binaryWriter = new BinaryWriter(stream);
+
+            binaryWriter.Write((byte)0);
+            binaryWriter.Write((byte)0);
+            binaryWriter.Write((byte)1);
+            binaryWriter.Write((byte)0);
+
+            int iconOffset = 6 + (iconSizes.Length * 16); // Initial offset for the icon directory
+
+            // Write the icon directory entries
+            foreach (var size in iconSizes)
+            {
+                int width = size;
+                int height = size;
+
+                // Resize the image to the desired size
+                Image<Rgb24> resizedImage = image.Clone();
+
+                resizedImage.Mutate(x => x.Resize(new ResizeOptions()
+                {
+                    Sampler = KnownResamplers.NearestNeighbor,
+                    Size = new Size(100, 0),
+                    Mode = ResizeMode.Min
+                }));
+
+
+                // Write the icon directory entry
+                binaryWriter.Write((byte)width); // Width
+                binaryWriter.Write((byte)height); // Height
+                binaryWriter.Write((byte)0); // Color count (0 means the image uses the maximum number of colors)
+                binaryWriter.Write((byte)0); // Reserved
+                binaryWriter.Write((short)1); // Color planes (must be 1)
+                binaryWriter.Write((short)24); // Bits per pixel (32 for RGBA)
+                Span<byte> data = new Span<byte>();
+                resizedImage.CopyPixelDataTo(data);
+                binaryWriter.Write(data.Length); // Image data length
+                binaryWriter.Write(iconOffset); // Offset of the image data
+                iconOffset += data.Length; // Update the offset
+
+                // Write the image data
+                binaryWriter.Write(data);
+            }
+
+            // Update the number of images in the ICO header
+            binaryWriter.Seek(4, SeekOrigin.Begin);
+            binaryWriter.Write((byte)iconSizes.Length);
         }
     }
     public class AvoidProperties : DefaultContractResolver

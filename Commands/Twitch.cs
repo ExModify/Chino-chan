@@ -51,6 +51,9 @@ namespace Chino_chan.Commands
 
                 switch (Status)
                 {
+                    case RegisterStatus.FailedToStart:
+                        Builder.Description = "Failed to get API key.";
+                        break;
                     case RegisterStatus.UserNotFound:
                         Builder.Description = GetGlobalEntry("UserNotFound");
                         break;
@@ -106,6 +109,9 @@ namespace Chino_chan.Commands
 
                 switch (Status)
                 {
+                    case UnregisterStatus.FailedToStart:
+                        Builder.Description = "Failed to get API key.";
+                        break;
                     case UnregisterStatus.UserNotFound:
                         Builder.Description = GetGlobalEntry("UserNotFound");
                         break;
